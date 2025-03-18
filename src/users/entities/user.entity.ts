@@ -1,31 +1,32 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
+import { Team } from '../../teams/entities/team.entity';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: number; // ID do usuário (chave primária)
 
   @Column()
-  name: string;
+  name: string; // Nome do usuário
 
   @Column({ unique: true })
-  email: string;
+  email: string; // Email único
 
   @Column()
-  password: string;
+  password: string; // Senha (hash)
 
   @Column({ nullable: true })
-  profilePhoto: string; // foto_perfil
+  profilePhoto: string; // Foto de perfil (opcional)
 
-  @Column({ nullable: true })
-  favoriteTeamId: number; // time_favorito_id (FK para teams)
+  @ManyToOne(() => Team, { nullable: true })
+  favoriteTeam: Team; // Time favorito (FK para teams, opcional)
 
   @Column({ default: false })
-  isAthlete: boolean; // is_athlete (true = atleta, false = usuário comum)
+  isAthlete: boolean; // Indica se é atleta (true) ou usuário comum (false)
 
   @Column({ type: 'date', nullable: true })
-  birthDate: Date; // data_nascimento
+  birthDate: Date; // Data de nascimento (opcional)
 
   @CreateDateColumn()
-  createdAt: Date; // data_criacao
+  createdAt: Date; // Data de criação (preenchida automaticamente pelo TypeORM)
 }
