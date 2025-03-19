@@ -23,5 +23,5 @@ export class CreateUserDto {
 
   @IsDateString()
   @IsOptional()
-  birthDate?: string; // Data de nascimento (opcional)
+  birthDate?: Date; // Data de nascimento (opcional)
 }
