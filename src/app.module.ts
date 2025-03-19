@@ -11,6 +11,7 @@ import { MatchStatsModule } from './match_stats/match_stats.module';
 import { RankingsModule } from './rankings/rankings.module';
 import { TeamStandingsModule } from './team_standings/team_standings.module';
 import { EngagementStatsModule } from './engagement_stats/engagement_stats.module';
+import { UserPreferencesModule } from './user_preferences/user_preferences.module';
 
 @Module({
   imports: [
@@ -53,6 +54,8 @@ import { EngagementStatsModule } from './engagement_stats/engagement_stats.modul
     TeamStandingsModule,
 
     EngagementStatsModule,
+
+    UserPreferencesModule,
   ],
 })
 export class AppModule { }
