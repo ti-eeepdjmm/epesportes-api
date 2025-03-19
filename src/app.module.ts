@@ -10,6 +10,8 @@ import { MatchesModule } from './matches/matches.module';
 import { MatchStatsModule } from './match_stats/match_stats.module';
 import { RankingsModule } from './rankings/rankings.module';
 import { TeamStandingsModule } from './team_standings/team_standings.module';
+import { EngagementStatsModule } from './engagement_stats/engagement_stats.module';
+import { UserPreferencesModule } from './user_preferences/user_preferences.module';
 
 @Module({
   imports: [
@@ -50,6 +52,10 @@ import { TeamStandingsModule } from './team_standings/team_standings.module';
     RankingsModule,
 
     TeamStandingsModule,
+
+    EngagementStatsModule,
+
+    UserPreferencesModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }
