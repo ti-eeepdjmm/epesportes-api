@@ -6,8 +6,6 @@ import { Team } from '../teams/entities/team.entity';
 import { Repository } from 'typeorm';
 import { mockTeamStandings, mockTeamStanding } from '../../test/mocks';
 
-
-
 describe('TeamStandingsService', () => {
   let service: TeamStandingsService;
   let teamStandingRepository: Repository<TeamStanding>;
@@ -17,7 +15,9 @@ describe('TeamStandingsService', () => {
     const mockRepository = {
       find: jest.fn().mockResolvedValue(mockTeamStandings),
       findOne: jest.fn().mockResolvedValue(mockTeamStanding),
-      save: jest.fn().mockImplementation(dto => Promise.resolve({ id: 1, ...dto })),
+      save: jest
+        .fn()
+        .mockImplementation((dto) => Promise.resolve({ id: 1, ...dto })),
       delete: jest.fn().mockResolvedValue({ affected: 1 }),
     };
 
@@ -30,7 +30,9 @@ describe('TeamStandingsService', () => {
     }).compile();
 
     service = module.get<TeamStandingsService>(TeamStandingsService);
-    teamStandingRepository = module.get<Repository<TeamStanding>>(getRepositoryToken(TeamStanding));
+    teamStandingRepository = module.get<Repository<TeamStanding>>(
+      getRepositoryToken(TeamStanding),
+    );
     teamRepository = module.get<Repository<Team>>(getRepositoryToken(Team));
   });
 

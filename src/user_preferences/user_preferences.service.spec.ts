@@ -15,20 +15,27 @@ describe('UserPreferencesService', () => {
     const mockRepository = {
       find: jest.fn().mockResolvedValue(mockUserPreferences),
       findOne: jest.fn().mockResolvedValue(mockUserPreference),
-      save: jest.fn().mockImplementation(dto => Promise.resolve({ id: 1, ...dto })),
+      save: jest
+        .fn()
+        .mockImplementation((dto) => Promise.resolve({ id: 1, ...dto })),
       delete: jest.fn().mockResolvedValue({ affected: 1 }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserPreferencesService,
-        { provide: getRepositoryToken(UserPreference), useValue: mockRepository },
+        {
+          provide: getRepositoryToken(UserPreference),
+          useValue: mockRepository,
+        },
         { provide: getRepositoryToken(User), useValue: mockRepository },
       ],
     }).compile();
 
     service = module.get<UserPreferencesService>(UserPreferencesService);
-    userPreferenceRepository = module.get<Repository<UserPreference>>(getRepositoryToken(UserPreference));
+    userPreferenceRepository = module.get<Repository<UserPreference>>(
+      getRepositoryToken(UserPreference),
+    );
     userRepository = module.get<Repository<User>>(getRepositoryToken(User));
   });
 

@@ -7,10 +7,13 @@ import { CreateTimelinePostDto } from './dto/create-timeline_post.dto';
 @Injectable()
 export class TimelinePostsService {
   constructor(
-    @InjectModel(TimelinePost.name) private timelinePostModel: Model<TimelinePost>,
+    @InjectModel(TimelinePost.name)
+    private timelinePostModel: Model<TimelinePost>,
   ) {}
 
-  async create(createTimelinePostDto: CreateTimelinePostDto): Promise<TimelinePost> {
+  async create(
+    createTimelinePostDto: CreateTimelinePostDto,
+  ): Promise<TimelinePost> {
     const createdPost = new this.timelinePostModel(createTimelinePostDto);
     return createdPost.save();
   }

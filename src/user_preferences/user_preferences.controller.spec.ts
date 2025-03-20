@@ -24,7 +24,9 @@ describe('UserPreferencesController', () => {
       ],
     }).compile();
 
-    controller = module.get<UserPreferencesController>(UserPreferencesController);
+    controller = module.get<UserPreferencesController>(
+      UserPreferencesController,
+    );
     service = module.get<UserPreferencesService>(UserPreferencesService);
   });
 

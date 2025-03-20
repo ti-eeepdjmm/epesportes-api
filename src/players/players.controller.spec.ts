@@ -26,12 +26,12 @@ describe('PlayersController', () => {
       birthDate: new Date(),
       createdAt: new Date(),
     },
-    team:{
-        id: 2,
-        name: 'Team A',
-        logo: 'logo.png',
-        createdAt: new Date(),
-      },
+    team: {
+      id: 2,
+      name: 'Team A',
+      logo: 'logo.png',
+      createdAt: new Date(),
+    },
     position: 'Atacante',
     jerseyNumber: 10,
   };
@@ -90,7 +90,7 @@ describe('PlayersController', () => {
 
   describe('findOne', () => {
     it('should return a single player', async () => {
-        const result = Player;
+      const result = Player;
 
       jest.spyOn(service, 'findOne').mockResolvedValue(result);
 

@@ -14,7 +14,7 @@ describe('GamesController', () => {
     const mockRepository = {
       find: jest.fn().mockResolvedValue([]),
       findOne: jest.fn().mockResolvedValue(null),
-      create: jest.fn().mockImplementation(dto => dto),
+      create: jest.fn().mockImplementation((dto) => dto),
       save: jest.fn().mockResolvedValue({ id: 1 }),
     };
 

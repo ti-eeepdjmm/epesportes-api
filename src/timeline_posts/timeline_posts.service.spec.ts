@@ -6,7 +6,6 @@ import { Model } from 'mongoose';
 import { CreateTimelinePostDto } from './dto/create-timeline_post.dto';
 import { mockTimelinePost } from '../../test/mocks';
 
-
 describe('TimelinePostsService', () => {
   let service: TimelinePostsService;
   let model: Model<TimelinePost>;
@@ -36,7 +35,10 @@ describe('TimelinePostsService', () => {
   });
 
   it('should create a post', async () => {
-    const dto: CreateTimelinePostDto = { userId: 'user123', content: 'Test post' };
+    const dto: CreateTimelinePostDto = {
+      userId: 'user123',
+      content: 'Test post',
+    };
     expect(await service.create(dto)).toEqual(mockTimelinePost);
   });
 

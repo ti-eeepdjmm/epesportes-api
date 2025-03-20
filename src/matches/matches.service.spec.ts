@@ -40,9 +40,14 @@ describe('MatchesService', () => {
   });
 
   it('should return all matches', async () => {
-    const mockMatch = { id: 1, score_team1: 2, score_team2: 1, status: 'finalizada' };
+    const mockMatch = {
+      id: 1,
+      score_team1: 2,
+      score_team2: 1,
+      status: 'finalizada',
+    };
     jest.spyOn(matchRepository, 'find').mockResolvedValue([mockMatch as any]);
-  
+
     expect(await service.findAll()).toEqual([mockMatch]);
   });
 });

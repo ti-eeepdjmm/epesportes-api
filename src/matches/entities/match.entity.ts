@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+} from 'typeorm';
 import { Game } from '../../games/entities/game.entity';
 import { Team } from '../../teams/entities/team.entity';
 
@@ -22,7 +28,11 @@ export class Match {
   @Column({ type: 'int', default: 0 })
   score_team2: number;
 
-  @Column({ type: 'enum', enum: ['agendada', 'em andamento', 'finalizada'], default: 'agendada' })
+  @Column({
+    type: 'enum',
+    enum: ['agendada', 'em andamento', 'finalizada'],
+    default: 'agendada',
+  })
   status: string;
 
   @CreateDateColumn()

@@ -24,7 +24,9 @@ describe('EngagementStatsController', () => {
       ],
     }).compile();
 
-    controller = module.get<EngagementStatsController>(EngagementStatsController);
+    controller = module.get<EngagementStatsController>(
+      EngagementStatsController,
+    );
     service = module.get<EngagementStatsService>(EngagementStatsService);
   });
 

@@ -43,7 +43,10 @@ describe('TimelinePostsController', () => {
   });
 
   it('should create a new post', async () => {
-    const dto: CreateTimelinePostDto = { userId: 'user123', content: 'Test post' };
+    const dto: CreateTimelinePostDto = {
+      userId: 'user123',
+      content: 'Test post',
+    };
     expect(await controller.create(dto)).toEqual(mockTimelinePost);
     expect(service.create).toHaveBeenCalledWith(dto);
   });

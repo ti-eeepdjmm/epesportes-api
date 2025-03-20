@@ -16,7 +16,9 @@ describe('MatchStatsService', () => {
     const mockRepository = {
       find: jest.fn().mockResolvedValue([]),
       findOne: jest.fn().mockResolvedValue(null),
-      save: jest.fn().mockImplementation(dto => Promise.resolve({ id: 1, ...dto })),
+      save: jest
+        .fn()
+        .mockImplementation((dto) => Promise.resolve({ id: 1, ...dto })),
       delete: jest.fn().mockResolvedValue({ affected: 1 }),
     };
 
@@ -30,7 +32,9 @@ describe('MatchStatsService', () => {
     }).compile();
 
     service = module.get<MatchStatsService>(MatchStatsService);
-    matchStatsRepository = module.get<Repository<MatchStat>>(getRepositoryToken(MatchStat));
+    matchStatsRepository = module.get<Repository<MatchStat>>(
+      getRepositoryToken(MatchStat),
+    );
     matchRepository = module.get<Repository<Match>>(getRepositoryToken(Match)); // Adicionado
     teamRepository = module.get<Repository<Team>>(getRepositoryToken(Team));
   });
@@ -51,9 +55,11 @@ describe('MatchStatsService', () => {
       penalties: 1,
       possession: 60,
     };
-  
-    jest.spyOn(matchStatsRepository, 'find').mockResolvedValue([mockStats as any]);
-  
+
+    jest
+      .spyOn(matchStatsRepository, 'find')
+      .mockResolvedValue([mockStats as any]);
+
     expect(await service.findAll()).toEqual([mockStats]);
   });
 });
