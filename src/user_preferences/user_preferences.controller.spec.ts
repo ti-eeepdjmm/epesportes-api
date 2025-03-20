@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserPreferencesController } from './user_preferences.controller';
 import { UserPreferencesService } from './user_preferences.service';
@@ -24,7 +25,9 @@ describe('UserPreferencesController', () => {
       ],
     }).compile();
 
-    controller = module.get<UserPreferencesController>(UserPreferencesController);
+    controller = module.get<UserPreferencesController>(
+      UserPreferencesController,
+    );
     service = module.get<UserPreferencesService>(UserPreferencesService);
   });
 

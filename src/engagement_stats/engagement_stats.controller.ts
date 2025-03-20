@@ -1,11 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { EngagementStatsService } from './engagement_stats.service';
 import { CreateEngagementStatDto } from './dto/create-engagement_stat.dto';
 import { UpdateEngagementStatDto } from './dto/update-engagement_stat.dto';
 
 @Controller('engagement-stats')
 export class EngagementStatsController {
-  constructor(private readonly engagementStatsService: EngagementStatsService) {}
+  constructor(
+    private readonly engagementStatsService: EngagementStatsService,
+  ) {}
 
   @Post()
   create(@Body() createEngagementStatDto: CreateEngagementStatDto) {
@@ -23,7 +33,10 @@ export class EngagementStatsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEngagementStatDto: UpdateEngagementStatDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateEngagementStatDto: UpdateEngagementStatDto,
+  ) {
     return this.engagementStatsService.update(+id, updateEngagementStatDto);
   }
 

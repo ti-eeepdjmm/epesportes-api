@@ -15,8 +15,19 @@ export class TeamStandingsService {
     private readonly teamRepository: Repository<Team>,
   ) {}
 
-  async create(createTeamStandingDto: CreateTeamStandingDto): Promise<TeamStanding> {
-    const { teamId, points, wins, draws, losses, goalsScored, goalsConceded, goalDifference } = createTeamStandingDto;
+  async create(
+    createTeamStandingDto: CreateTeamStandingDto,
+  ): Promise<TeamStanding> {
+    const {
+      teamId,
+      points,
+      wins,
+      draws,
+      losses,
+      goalsScored,
+      goalsConceded,
+      goalDifference,
+    } = createTeamStandingDto;
 
     const team = await this.teamRepository.findOne({ where: { id: teamId } });
     if (!team) throw new NotFoundException('Team not found');
@@ -39,12 +50,18 @@ export class TeamStandingsService {
   }
 
   async findOne(id: number): Promise<TeamStanding> {
-    const teamStanding = await this.teamStandingRepository.findOne({ where: { id }, relations: ['team'] });
+    const teamStanding = await this.teamStandingRepository.findOne({
+      where: { id },
+      relations: ['team'],
+    });
     if (!teamStanding) throw new NotFoundException('Team standing not found');
     return teamStanding;
   }
 
-  async update(id: number, updateTeamStandingDto: UpdateTeamStandingDto): Promise<TeamStanding> {
+  async update(
+    id: number,
+    updateTeamStandingDto: UpdateTeamStandingDto,
+  ): Promise<TeamStanding> {
     const teamStanding = await this.findOne(id);
     Object.assign(teamStanding, updateTeamStandingDto);
     return this.teamStandingRepository.save(teamStanding);
@@ -52,6 +69,7 @@ export class TeamStandingsService {
 
   async remove(id: number): Promise<void> {
     const result = await this.teamStandingRepository.delete(id);
-    if (result.affected === 0) throw new NotFoundException('Team standing not found');
+    if (result.affected === 0)
+      throw new NotFoundException('Team standing not found');
   }
 }

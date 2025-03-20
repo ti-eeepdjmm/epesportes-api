@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { Repository } from 'typeorm';
@@ -77,7 +79,9 @@ describe('UsersService', () => {
       const result = await service.findAll();
 
       expect(result).toBe(users);
-      expect(userRepository.find).toHaveBeenCalledWith({ relations: ['favoriteTeam'] });
+      expect(userRepository.find).toHaveBeenCalledWith({
+        relations: ['favoriteTeam'],
+      });
     });
   });
 
@@ -117,14 +121,17 @@ describe('UsersService', () => {
 
       expect(result).toEqual({ ...user, ...updateUserDto });
       expect(service.findOne).toHaveBeenCalledWith(user.id);
-      expect(userRepository.save).toHaveBeenCalledWith({ ...user, ...updateUserDto });
+      expect(userRepository.save).toHaveBeenCalledWith({
+        ...user,
+        ...updateUserDto,
+      });
     });
   });
 
   describe('remove', () => {
     it('should remove a user', async () => {
       jest.spyOn(service, 'findOne').mockResolvedValue(user);
-      jest.spyOn(userRepository, 'remove').mockResolvedValue(user as User);
+      jest.spyOn(userRepository, 'remove').mockResolvedValue(user);
 
       await service.remove(user.id);
 

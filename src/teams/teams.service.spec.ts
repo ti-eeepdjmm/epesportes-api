@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { TeamsService } from './teams.service';
 import { Repository } from 'typeorm';
@@ -98,7 +100,10 @@ describe('TeamsService', () => {
 
       expect(result).toEqual({ ...team, ...updateTeamDto });
       expect(teamRepository.findOneBy).toHaveBeenCalledWith({ id: team.id });
-      expect(teamRepository.save).toHaveBeenCalledWith({ ...team, ...updateTeamDto });
+      expect(teamRepository.save).toHaveBeenCalledWith({
+        ...team,
+        ...updateTeamDto,
+      });
     });
 
     it('should throw NotFoundException if team is not found', async () => {
@@ -114,7 +119,9 @@ describe('TeamsService', () => {
 
   describe('remove', () => {
     it('should remove a team', async () => {
-      jest.spyOn(teamRepository, 'delete').mockResolvedValue({ affected: 1 } as any);
+      jest
+        .spyOn(teamRepository, 'delete')
+        .mockResolvedValue({ affected: 1 } as any);
 
       await service.remove(team.id);
 
@@ -122,7 +129,9 @@ describe('TeamsService', () => {
     });
 
     it('should handle case where team is not found during removal', async () => {
-      jest.spyOn(teamRepository, 'delete').mockResolvedValue({ affected: 0 } as any);
+      jest
+        .spyOn(teamRepository, 'delete')
+        .mockResolvedValue({ affected: 0 } as any);
 
       await service.remove(team.id);
 

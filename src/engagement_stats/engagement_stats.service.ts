@@ -15,8 +15,11 @@ export class EngagementStatsService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async create(createEngagementStatDto: CreateEngagementStatDto): Promise<EngagementStat> {
-    const { userId, postsCreated, commentsMade, likesReceived, videoViews } = createEngagementStatDto;
+  async create(
+    createEngagementStatDto: CreateEngagementStatDto,
+  ): Promise<EngagementStat> {
+    const { userId, postsCreated, commentsMade, likesReceived, videoViews } =
+      createEngagementStatDto;
 
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
@@ -36,12 +39,19 @@ export class EngagementStatsService {
   }
 
   async findOne(id: number): Promise<EngagementStat> {
-    const engagementStat = await this.engagementStatRepository.findOne({ where: { id }, relations: ['user'] });
-    if (!engagementStat) throw new NotFoundException('Engagement stats not found');
+    const engagementStat = await this.engagementStatRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+    if (!engagementStat)
+      throw new NotFoundException('Engagement stats not found');
     return engagementStat;
   }
 
-  async update(id: number, updateEngagementStatDto: UpdateEngagementStatDto): Promise<EngagementStat> {
+  async update(
+    id: number,
+    updateEngagementStatDto: UpdateEngagementStatDto,
+  ): Promise<EngagementStat> {
     const engagementStat = await this.findOne(id);
     Object.assign(engagementStat, updateEngagementStatDto);
     return this.engagementStatRepository.save(engagementStat);
@@ -49,6 +59,7 @@ export class EngagementStatsService {
 
   async remove(id: number): Promise<void> {
     const result = await this.engagementStatRepository.delete(id);
-    if (result.affected === 0) throw new NotFoundException('Engagement stats not found');
+    if (result.affected === 0)
+      throw new NotFoundException('Engagement stats not found');
   }
 }

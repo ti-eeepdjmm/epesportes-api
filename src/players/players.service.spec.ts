@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { PlayersService } from './players.service';
 import { Repository } from 'typeorm';
@@ -14,18 +15,23 @@ describe('PlayersService', () => {
   let teamRepository: Repository<Team>;
 
   // Objetos globais para serem usados nos testes
-  const team = { id: 2, name: 'Team A', logo: 'logo.png', createdAt: new Date() };
-  const user = { 
-    id: 1, 
-    name: 'User A', 
-    email: 'user@example.com', 
+  const team = {
+    id: 2,
+    name: 'Team A',
+    logo: 'logo.png',
+    createdAt: new Date(),
+  };
+  const user = {
+    id: 1,
+    name: 'User A',
+    email: 'user@example.com',
     password: 'hashedpassword',
     profilePhoto: 'profile.png',
     favoriteTeam: team,
     isAthlete: true,
     birthDate: new Date(),
-    createdAt: new Date(), 
-};
+    createdAt: new Date(),
+  };
   const player = {
     id: 1,
     user,
@@ -55,7 +61,9 @@ describe('PlayersService', () => {
     }).compile();
 
     service = module.get<PlayersService>(PlayersService);
-    playerRepository = module.get<Repository<Player>>(getRepositoryToken(Player));
+    playerRepository = module.get<Repository<Player>>(
+      getRepositoryToken(Player),
+    );
     userRepository = module.get<Repository<User>>(getRepositoryToken(User));
     teamRepository = module.get<Repository<Team>>(getRepositoryToken(Team));
   });
@@ -81,8 +89,12 @@ describe('PlayersService', () => {
       const result = await service.create(createPlayerDto);
 
       expect(result).toBe(player);
-      expect(teamRepository.findOneBy).toHaveBeenCalledWith({ id: createPlayerDto.teamId });
-      expect(userRepository.findOneBy).toHaveBeenCalledWith({ id: createPlayerDto.userId });
+      expect(teamRepository.findOneBy).toHaveBeenCalledWith({
+        id: createPlayerDto.teamId,
+      });
+      expect(userRepository.findOneBy).toHaveBeenCalledWith({
+        id: createPlayerDto.userId,
+      });
       expect(playerRepository.create).toHaveBeenCalledWith({
         user,
         team,
@@ -103,7 +115,9 @@ describe('PlayersService', () => {
       jest.spyOn(teamRepository, 'findOneBy').mockResolvedValue(null);
 
       await expect(service.create(createPlayerDto)).rejects.toThrow(
-        new NotFoundException(`Team with ID ${createPlayerDto.teamId} not found`),
+        new NotFoundException(
+          `Team with ID ${createPlayerDto.teamId} not found`,
+        ),
       );
     });
   });
@@ -112,18 +126,24 @@ describe('PlayersService', () => {
     it('should return an array of players', async () => {
       const players = [player, player];
 
-      jest.spyOn(playerRepository, 'find').mockResolvedValue(players as Player[]);
+      jest
+        .spyOn(playerRepository, 'find')
+        .mockResolvedValue(players as Player[]);
 
       const result = await service.findAll();
 
       expect(result).toBe(players);
-      expect(playerRepository.find).toHaveBeenCalledWith({ relations: ['user', 'team'] });
+      expect(playerRepository.find).toHaveBeenCalledWith({
+        relations: ['user', 'team'],
+      });
     });
   });
 
   describe('findOne', () => {
     it('should return a player by ID', async () => {
-      jest.spyOn(playerRepository, 'findOne').mockResolvedValue(player as Player);
+      jest
+        .spyOn(playerRepository, 'findOne')
+        .mockResolvedValue(player as Player);
 
       const result = await service.findOne(player.id);
 
@@ -157,14 +177,19 @@ describe('PlayersService', () => {
 
       expect(result).toEqual({ ...player, ...updatePlayerDto });
       expect(service.findOne).toHaveBeenCalledWith(player.id);
-      expect(playerRepository.save).toHaveBeenCalledWith({ ...player, ...updatePlayerDto });
+      expect(playerRepository.save).toHaveBeenCalledWith({
+        ...player,
+        ...updatePlayerDto,
+      });
     });
   });
 
   describe('remove', () => {
     it('should remove a player', async () => {
       jest.spyOn(service, 'findOne').mockResolvedValue(player as Player);
-      jest.spyOn(playerRepository, 'remove').mockResolvedValue(player as Player);
+      jest
+        .spyOn(playerRepository, 'remove')
+        .mockResolvedValue(player as Player);
 
       await service.remove(player.id);
 

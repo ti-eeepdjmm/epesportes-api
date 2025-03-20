@@ -15,20 +15,29 @@ export class LineupService {
     @InjectRepository(Team) private teamRepository: Repository<Team>,
     @InjectRepository(Match) private matchRepository: Repository<Match>,
     @InjectRepository(Player) private playerRepository: Repository<Player>,
-  ) { }
+  ) {}
 
   async create(createLineupDto: CreateLineupDto): Promise<Lineup> {
     const { teamId, matchId, playerId, titular } = createLineupDto;
     const team = await this.teamRepository.findOne({ where: { id: teamId } });
     if (!team) throw new NotFoundException('Team not found');
 
-    const match = await this.matchRepository.findOne({ where: { id: matchId } });
+    const match = await this.matchRepository.findOne({
+      where: { id: matchId },
+    });
     if (!match) throw new NotFoundException('Match not found');
 
-    const player = await this.playerRepository.findOne({ where: { id: playerId } });
+    const player = await this.playerRepository.findOne({
+      where: { id: playerId },
+    });
     if (!player) throw new NotFoundException('Player not found');
 
-    const lineup = this.lineupRepository.create({ team, match, player, titular });
+    const lineup = this.lineupRepository.create({
+      team,
+      match,
+      player,
+      titular,
+    });
     return this.lineupRepository.save(lineup);
   }
 

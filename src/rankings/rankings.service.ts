@@ -16,12 +16,21 @@ export class RankingsService {
   ) {}
 
   async create(createRankingDto: CreateRankingDto): Promise<Ranking> {
-    const { playerId, goals, assists, yellowCards, redCards } = createRankingDto;
+    const { playerId, goals, assists, yellowCards, redCards } =
+      createRankingDto;
 
-    const player = await this.playerRepository.findOne({ where: { id: playerId } });
+    const player = await this.playerRepository.findOne({
+      where: { id: playerId },
+    });
     if (!player) throw new NotFoundException('Player not found');
 
-    const ranking = this.rankingRepository.create({ player, goals, assists, yellowCards, redCards });
+    const ranking = this.rankingRepository.create({
+      player,
+      goals,
+      assists,
+      yellowCards,
+      redCards,
+    });
     return this.rankingRepository.save(ranking);
   }
 
@@ -30,12 +39,18 @@ export class RankingsService {
   }
 
   async findOne(id: number): Promise<Ranking> {
-    const ranking = await this.rankingRepository.findOne({ where: { id }, relations: ['player'] });
+    const ranking = await this.rankingRepository.findOne({
+      where: { id },
+      relations: ['player'],
+    });
     if (!ranking) throw new NotFoundException('Ranking not found');
     return ranking;
   }
 
-  async update(id: number, updateRankingDto: UpdateRankingDto): Promise<Ranking> {
+  async update(
+    id: number,
+    updateRankingDto: UpdateRankingDto,
+  ): Promise<Ranking> {
     const ranking = await this.findOne(id);
     Object.assign(ranking, updateRankingDto);
     return this.rankingRepository.save(ranking);

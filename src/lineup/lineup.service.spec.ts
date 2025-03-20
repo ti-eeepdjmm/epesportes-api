@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { LineupService } from './lineup.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -17,7 +19,12 @@ describe('LineupService', () => {
     id: 1,
     team: { id: 1, nome: 'Time A' },
     match: { id: 1, game: { id: 1, nome: 'Futebol' } },
-    player: { id: 10, nome: 'Jogador 1', posicao: 'Atacante', numero_camisa: 9 },
+    player: {
+      id: 10,
+      nome: 'Jogador 1',
+      posicao: 'Atacante',
+      numero_camisa: 9,
+    },
     titular: true,
   };
 
@@ -40,9 +47,13 @@ describe('LineupService', () => {
     }).compile();
 
     service = module.get<LineupService>(LineupService);
-    lineupRepository = module.get<Repository<Lineup>>(getRepositoryToken(Lineup));
+    lineupRepository = module.get<Repository<Lineup>>(
+      getRepositoryToken(Lineup),
+    );
     matchRepository = module.get<Repository<Match>>(getRepositoryToken(Match));
-    playerRepository = module.get<Repository<Player>>(getRepositoryToken(Player));
+    playerRepository = module.get<Repository<Player>>(
+      getRepositoryToken(Player),
+    );
     teamRepository = module.get<Repository<Team>>(getRepositoryToken(Team));
   });
 
@@ -51,9 +62,13 @@ describe('LineupService', () => {
   });
 
   it('should return all lineups', async () => {
-    const mockLineup = { id: 1, team: { id: 1, nome: 'Time A' }, titular: true };
+    const mockLineup = {
+      id: 1,
+      team: { id: 1, nome: 'Time A' },
+      titular: true,
+    };
     jest.spyOn(lineupRepository, 'find').mockResolvedValue([mockLineup as any]);
-  
+
     expect(await service.findAll()).toEqual([mockLineup]);
   });
 });

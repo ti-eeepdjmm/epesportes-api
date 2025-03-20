@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { MatchesService } from './matches.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -40,9 +42,14 @@ describe('MatchesService', () => {
   });
 
   it('should return all matches', async () => {
-    const mockMatch = { id: 1, score_team1: 2, score_team2: 1, status: 'finalizada' };
+    const mockMatch = {
+      id: 1,
+      score_team1: 2,
+      score_team2: 1,
+      status: 'finalizada',
+    };
     jest.spyOn(matchRepository, 'find').mockResolvedValue([mockMatch as any]);
-  
+
     expect(await service.findAll()).toEqual([mockMatch]);
   });
 });

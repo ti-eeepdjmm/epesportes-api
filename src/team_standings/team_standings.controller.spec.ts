@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { TeamStandingsController } from './team_standings.controller';
 import { TeamStandingsService } from './team_standings.service';

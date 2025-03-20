@@ -1,4 +1,10 @@
-import { IsInt, IsNotEmpty, IsObject, IsOptional, IsNumber } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  IsNumber,
+} from 'class-validator';
 
 export class CreateMatchStatDto {
   @IsInt()

@@ -19,15 +19,35 @@ export class MatchStatsService {
   ) {}
 
   async create(createMatchStatsDto: CreateMatchStatDto): Promise<MatchStat> {
-    const { matchId, teamId, goals, playersGoals, fouls, shots, penalties, possession } = createMatchStatsDto;
+    const {
+      matchId,
+      teamId,
+      goals,
+      playersGoals,
+      fouls,
+      shots,
+      penalties,
+      possession,
+    } = createMatchStatsDto;
 
-    const match = await this.matchRepository.findOne({ where: { id: matchId } });
+    const match = await this.matchRepository.findOne({
+      where: { id: matchId },
+    });
     if (!match) throw new NotFoundException('Match not found');
 
     const team = await this.teamRepository.findOne({ where: { id: teamId } });
     if (!team) throw new NotFoundException('Team not found');
 
-    const matchStats = this.matchStatsRepository.create({ match, team, goals, playersGoals, fouls, shots, penalties, possession });
+    const matchStats = this.matchStatsRepository.create({
+      match,
+      team,
+      goals,
+      playersGoals,
+      fouls,
+      shots,
+      penalties,
+      possession,
+    });
     return this.matchStatsRepository.save(matchStats);
   }
 
@@ -36,12 +56,18 @@ export class MatchStatsService {
   }
 
   async findOne(id: number): Promise<MatchStat> {
-    const matchStats = await this.matchStatsRepository.findOne({ where: { id }, relations: ['match', 'team'] });
+    const matchStats = await this.matchStatsRepository.findOne({
+      where: { id },
+      relations: ['match', 'team'],
+    });
     if (!matchStats) throw new NotFoundException('Match stats not found');
     return matchStats;
   }
 
-  async update(id: number, updateMatchStatsDto: UpdateMatchStatDto): Promise<MatchStat> {
+  async update(
+    id: number,
+    updateMatchStatsDto: UpdateMatchStatDto,
+  ): Promise<MatchStat> {
     const matchStats = await this.findOne(id);
     Object.assign(matchStats, updateMatchStatsDto);
     return this.matchStatsRepository.save(matchStats);
@@ -49,6 +75,7 @@ export class MatchStatsService {
 
   async remove(id: number): Promise<void> {
     const result = await this.matchStatsRepository.delete(id);
-    if (result.affected === 0) throw new NotFoundException('Match stats not found');
+    if (result.affected === 0)
+      throw new NotFoundException('Match stats not found');
   }
 }
