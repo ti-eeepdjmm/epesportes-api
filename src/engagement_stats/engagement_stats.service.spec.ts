@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { EngagementStatsService } from './engagement_stats.service';
 import { getRepositoryToken } from '@nestjs/typeorm';

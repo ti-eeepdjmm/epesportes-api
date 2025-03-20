@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 // Importa as ferramentas de teste do NestJS para criar um módulo de teste.
 

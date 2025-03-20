@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Test, TestingModule } from '@nestjs/testing';
 import { RankingsService } from './rankings.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Ranking } from './entities/ranking.entity';
 import { Player } from '../players/entities/player.entity';
 import { Repository } from 'typeorm';
-import { NotFoundException } from '@nestjs/common';
 
 export const mockRanking = {
   id: 1,
