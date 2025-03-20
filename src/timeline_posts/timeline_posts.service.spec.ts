@@ -4,10 +4,12 @@ import { getModelToken } from '@nestjs/mongoose';
 import { TimelinePost } from './schemas/timeline_posts.schema';
 import { Model } from 'mongoose';
 import { CreateTimelinePostDto } from './dto/create-timeline_post.dto';
+import { UpdateTimelinePostDto } from './dto/update-timeline_post.dto';
 import { mockTimelinePost } from '../../test/mocks';
 
 describe('TimelinePostsService', () => {
   let service: TimelinePostsService;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let model: Model<TimelinePost>;
 
   beforeEach(async () => {
@@ -20,6 +22,7 @@ describe('TimelinePostsService', () => {
             create: jest.fn().mockResolvedValue(mockTimelinePost),
             find: jest.fn().mockResolvedValue([mockTimelinePost]),
             findById: jest.fn().mockResolvedValue(mockTimelinePost),
+            findByIdAndUpdate: jest.fn().mockResolvedValue(mockTimelinePost),
             findByIdAndDelete: jest.fn().mockResolvedValue(mockTimelinePost),
           },
         },
@@ -39,18 +42,23 @@ describe('TimelinePostsService', () => {
       userId: 'user123',
       content: 'Test post',
     };
-    expect(await service.create(dto)).toEqual(mockTimelinePost);
+    await expect(service.create(dto)).resolves.toEqual(mockTimelinePost);
   });
 
   it('should return all posts', async () => {
-    expect(await service.findAll()).toEqual([mockTimelinePost]);
+    await expect(service.findAll()).resolves.toEqual([mockTimelinePost]);
   });
 
   it('should return one post by id', async () => {
-    expect(await service.findOne('1')).toEqual(mockTimelinePost);
+    await expect(service.findOne('1')).resolves.toEqual(mockTimelinePost);
+  });
+
+  it('should update a post', async () => {
+    const dto: UpdateTimelinePostDto = { content: 'Updated content' };
+    await expect(service.update('1', dto)).resolves.toEqual(mockTimelinePost);
   });
 
   it('should delete a post', async () => {
-    expect(await service.remove('1')).toEqual(mockTimelinePost);
+    await expect(service.remove('1')).resolves.toEqual(mockTimelinePost);
   });
 });

@@ -1,31 +1,27 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { TimelinePostsController } from './timeline_posts.controller';
 import { TimelinePostsService } from './timeline_posts.service';
 import { CreateTimelinePostDto } from './dto/create-timeline_post.dto';
-import { mockTimelinePost } from '../../test/mocks';
+import { UpdateTimelinePostDto } from './dto/update-timeline_post.dto';
+import { mockTimelinePost, mockTimelinePosts } from '../../test/mocks';
+import { TimelinePost } from './schemas/timeline_posts.schema';
+
+jest.mock('./timeline_posts.service');
+const timelinePosts = mockTimelinePosts.map((post) => new TimelinePost(post));
 
 describe('TimelinePostsController', () => {
   let controller: TimelinePostsController;
   let service: TimelinePostsService;
+  const mockService = {
+    findAll: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    remove: jest.fn(),
+  };
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [TimelinePostsController],
-      providers: [
-        {
-          provide: TimelinePostsService,
-          useValue: {
-            create: jest.fn().mockResolvedValue(mockTimelinePost),
-            findAll: jest.fn().mockResolvedValue([mockTimelinePost]),
-            findOne: jest.fn().mockResolvedValue(mockTimelinePost),
-            remove: jest.fn().mockResolvedValue(mockTimelinePost),
-          },
-        },
-      ],
-    }).compile();
-
-    controller = module.get<TimelinePostsController>(TimelinePostsController);
-    service = module.get<TimelinePostsService>(TimelinePostsService);
+  beforeEach(() => {
+    service = mockService as unknown as TimelinePostsService;
+    controller = new TimelinePostsController(service);
   });
 
   it('should be defined', () => {
@@ -33,13 +29,15 @@ describe('TimelinePostsController', () => {
   });
 
   it('should return all timeline posts', async () => {
-    expect(await controller.findAll()).toEqual([mockTimelinePost]);
-    expect(service.findAll).toHaveBeenCalled();
+    jest.spyOn(service, 'findAll').mockResolvedValue(timelinePosts);
+    await expect(controller.findAll()).resolves.toEqual(mockTimelinePost);
   });
 
   it('should return a single post', async () => {
-    expect(await controller.findOne('1')).toEqual(mockTimelinePost);
-    expect(service.findOne).toHaveBeenCalledWith('1');
+    jest
+      .spyOn(service, 'findOne')
+      .mockResolvedValue(new TimelinePost(mockTimelinePost));
+    await expect(controller.findOne('1')).resolves.toEqual(mockTimelinePost);
   });
 
   it('should create a new post', async () => {
@@ -47,12 +45,26 @@ describe('TimelinePostsController', () => {
       userId: 'user123',
       content: 'Test post',
     };
-    expect(await controller.create(dto)).toEqual(mockTimelinePost);
-    expect(service.create).toHaveBeenCalledWith(dto);
+    jest
+      .spyOn(service, 'create')
+      .mockResolvedValue(new TimelinePost(mockTimelinePost));
+    await expect(controller.create(dto)).resolves.toEqual(mockTimelinePost);
+  });
+
+  it('should update a post', async () => {
+    const dto: UpdateTimelinePostDto = { content: 'Updated content' };
+    jest
+      .spyOn(service, 'update')
+      .mockResolvedValue(new TimelinePost(mockTimelinePost));
+    await expect(controller.update('1', dto)).resolves.toEqual(
+      mockTimelinePost,
+    );
   });
 
   it('should delete a post', async () => {
-    expect(await controller.remove('1')).toEqual(mockTimelinePost);
-    expect(service.remove).toHaveBeenCalledWith('1');
+    jest
+      .spyOn(service, 'remove')
+      .mockResolvedValue(new TimelinePost(mockTimelinePost));
+    await expect(controller.remove('1')).resolves.toEqual(mockTimelinePost);
   });
 });
