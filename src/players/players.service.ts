@@ -24,19 +24,18 @@ import { Team } from '../teams/entities/team.entity';
 
 @Injectable()
 // Marca a classe como um provedor que pode ser injetado em outros componentes
-
 export class PlayersService {
   constructor(
     @InjectRepository(Player)
-    private readonly playerRepository: Repository<Player>, 
+    private readonly playerRepository: Repository<Player>,
     // Injeta o repositório do TypeORM para a entidade Player
 
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>, 
+    private readonly userRepository: Repository<User>,
     // Injeta o repositório do TypeORM para a entidade User
 
     @InjectRepository(Team)
-    private readonly teamRepository: Repository<Team>, 
+    private readonly teamRepository: Repository<Team>,
     // Injeta o repositório do TypeORM para a entidade Team
   ) {}
 
@@ -74,7 +73,7 @@ export class PlayersService {
   async findAll(): Promise<Player[]> {
     // Método para buscar todos os jogadores
     return this.playerRepository.find({
-      relations: ['user', 'team'], 
+      relations: ['user', 'team'],
       // Inclui os relacionamentos com as entidades User e Team
     });
   }
@@ -83,7 +82,7 @@ export class PlayersService {
     // Método para buscar um jogador pelo ID
     const player = await this.playerRepository.findOne({
       where: { id },
-      relations: ['user', 'team'], 
+      relations: ['user', 'team'],
       // Inclui os relacionamentos com as entidades User e Team
     });
 

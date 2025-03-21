@@ -1,46 +1,63 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
+
 import { UsersModule } from './users/users.module';
 import { TeamsModule } from './teams/teams.module';
 import { PlayersModule } from './players/players.module';
-import { LineupModule } from './lineup/lineup.module';
+import { LineupsModule } from './lineups/lineups.module';
 import { GamesModule } from './games/games.module';
 import { MatchesModule } from './matches/matches.module';
+import { MatchStatsModule } from './match_stats/match_stats.module';
+import { RankingsModule } from './rankings/rankings.module';
+import { TeamStandingsModule } from './team_standings/team_standings.module';
+import { EngagementStatsModule } from './engagement_stats/engagement_stats.module';
+import { UserPreferencesModule } from './user_preferences/user_preferences.module';
+import { TimelinePostsModule } from './timeline_posts/timeline_posts.module';
 
 @Module({
   imports: [
-    // ConfigModule: Módulo para gerenciar variáveis de ambiente e configurações
+    // ConfigModule: Carrega variáveis do .env e torna-as globais
     ConfigModule.forRoot({
-      isGlobal: true, // Torna o ConfigModule acessível em toda a aplicação sem precisar importá-lo em cada módulo
+      isGlobal: true,
     }),
 
-    // TypeOrmModule: Configuração do TypeORM para conexão com o banco de dados
+    // TypeORM: Conexão com PostgreSQL via variável de ambiente
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule], // Importa o ConfigModule para acessar variáveis de ambiente
-      inject: [ConfigService], // Injeta o ConfigService para acessar as configurações
+      imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        type: 'postgres', // Define o tipo do banco de dados como PostgreSQL
-        url: configService.get<string>('DATABASE_URL'), // Obtém a string de conexão do banco de dados a partir das variáveis de ambiente
-        entities: [__dirname + '/**/*.entity{.ts,.js}'], // Define o caminho para as entidades do TypeORM
-        synchronize: true, // Desativa a sincronização automática do esquema (recomendado para produção)
-        migrations: [__dirname + '/migrations/*{.ts,.js}'], // Define o caminho para as migrations
+        type: 'postgres',
+        url: configService.get<string>('DATABASE_URL'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: configService.get<boolean>('DB_SYNCHRONIZE', false),
+        migrations: [__dirname + '/migrations/*{.ts,.js}'],
       }),
     }),
 
-    // Importa o módulo de usuários
+    // Mongoose: Conexão com MongoDB via variável de ambiente
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGO_URI'),
+      }),
+    }),
+
+    // Módulos da aplicação
     UsersModule,
-
-    // Importa o módulo de times
     TeamsModule,
-
     PlayersModule,
-
-    LineupModule,
-
+    LineupsModule,
     GamesModule,
-
     MatchesModule,
+    MatchStatsModule,
+    RankingsModule,
+    TeamStandingsModule,
+    EngagementStatsModule,
+    UserPreferencesModule,
+    TimelinePostsModule,
   ],
 })
 export class AppModule {}

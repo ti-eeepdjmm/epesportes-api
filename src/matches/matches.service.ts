@@ -19,7 +19,15 @@ export class MatchesService {
   ) {}
 
   async create(createMatchDto: CreateMatchDto): Promise<Match> {
-    const { gameId, team1Id, team2Id, score_team1, score_team2, status, data_hora } = createMatchDto;
+    const {
+      gameId,
+      team1Id,
+      team2Id,
+      score_team1,
+      score_team2,
+      status,
+      dateTime,
+    } = createMatchDto;
 
     const game = await this.gameRepository.findOne({ where: { id: gameId } });
     if (!game) throw new NotFoundException('Game not found');
@@ -30,7 +38,15 @@ export class MatchesService {
     const team2 = await this.teamRepository.findOne({ where: { id: team2Id } });
     if (!team2) throw new NotFoundException('Team 2 not found');
 
-    const match = this.matchRepository.create({ game, team1, team2, score_team1, score_team2, status, data_hora });
+    const match = this.matchRepository.create({
+      game,
+      team1,
+      team2,
+      score_team1,
+      score_team2,
+      status,
+      dateTime,
+    });
     return this.matchRepository.save(match);
   }
 
@@ -39,7 +55,10 @@ export class MatchesService {
   }
 
   async findOne(id: number): Promise<Match> {
-    const match = await this.matchRepository.findOne({ where: { id }, relations: ['game', 'team1', 'team2'] });
+    const match = await this.matchRepository.findOne({
+      where: { id },
+      relations: ['game', 'team1', 'team2'],
+    });
     if (!match) throw new NotFoundException('Match not found');
     return match;
   }

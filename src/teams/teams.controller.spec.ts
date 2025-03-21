@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 // Importa as ferramentas de teste do NestJS para criar um módulo de teste.
 
@@ -99,7 +100,9 @@ describe('TeamsController', () => {
     it('should return an array of teams', async () => {
       // Testa se o método `findAll` retorna uma lista de times.
 
-      const result = [{ id: 1, name: 'Team A', logo: 'logo.png', createdAt: new Date() }];
+      const result = [
+        { id: 1, name: 'Team A', logo: 'logo.png', createdAt: new Date() },
+      ];
       // Define o resultado esperado.
 
       jest.spyOn(service, 'findAll').mockResolvedValue(result);
@@ -119,7 +122,12 @@ describe('TeamsController', () => {
     it('should return a single team', async () => {
       // Testa se o método `findOne` retorna um time específico.
 
-      const result = { id: 1, name: 'Team A', logo: 'logo.png', createdAt: new Date() };
+      const result = {
+        id: 1,
+        name: 'Team A',
+        logo: 'logo.png',
+        createdAt: new Date(),
+      };
       // Define o resultado esperado.
 
       jest.spyOn(service, 'findOne').mockResolvedValue(result);
@@ -142,7 +150,12 @@ describe('TeamsController', () => {
       const updateTeamDto: UpdateTeamDto = { name: 'Updated Team A' };
       // Define os dados de entrada para atualizar um time.
 
-      const result = { id: 1, name: 'Team A', logo: 'logo.png', createdAt: new Date() };
+      const result = {
+        id: 1,
+        name: 'Team A',
+        logo: 'logo.png',
+        createdAt: new Date(),
+      };
       // Define o resultado esperado.
 
       jest.spyOn(service, 'update').mockResolvedValue(result);

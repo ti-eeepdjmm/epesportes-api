@@ -1,4 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Game {
@@ -6,14 +11,14 @@ export class Game {
   id: number;
 
   @Column()
-  nome: string;
+  name: string;
 
   @Column({ type: 'text' })
-  descricao: string;
+  description: string;
 
   @Column({ type: 'text' })
-  regras: string;
+  rules: string;
 
   @CreateDateColumn()
-  criado_em: Date;
+  created_at: Date;
 }

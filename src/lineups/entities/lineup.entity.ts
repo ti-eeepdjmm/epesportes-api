@@ -18,5 +18,5 @@ export class Lineup {
   player: Player;
 
   @Column({ type: 'boolean', default: false })
-  titular: boolean;
+  starter: boolean;
 }
