@@ -15,6 +15,7 @@ import { TeamStandingsModule } from './team_standings/team_standings.module';
 import { EngagementStatsModule } from './engagement_stats/engagement_stats.module';
 import { UserPreferencesModule } from './user_preferences/user_preferences.module';
 import { TimelinePostsModule } from './timeline_posts/timeline_posts.module';
+import { MentionsModule } from './mentions/mentions.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { TimelinePostsModule } from './timeline_posts/timeline_posts.module';
     EngagementStatsModule,
     UserPreferencesModule,
     TimelinePostsModule,
+    MentionsModule,
   ],
 })
 export class AppModule {}
