@@ -54,9 +54,12 @@ export class UserPreferencesService {
     return this.userPreferenceRepository.save(userPreference);
   }
 
-  async remove(id: number): Promise<void> {
-    const result = await this.userPreferenceRepository.delete(id);
-    if (result.affected === 0)
+  async remove(id: number): Promise<UserPreference> {
+    const userPreference = await this.findOne(id);
+    if (!userPreference) {
       throw new NotFoundException('User preference not found');
+    }
+    await this.userPreferenceRepository.remove(userPreference);
+    return userPreference;
   }
 }

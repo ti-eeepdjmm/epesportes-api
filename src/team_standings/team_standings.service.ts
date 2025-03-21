@@ -58,6 +58,15 @@ export class TeamStandingsService {
     return teamStanding;
   }
 
+  async findAllOrderedByPoints(): Promise<TeamStanding[]> {
+    return this.teamStandingRepository.find({
+      relations: ['team'],
+      order: {
+        points: 'DESC',
+      },
+    });
+  }
+
   async update(
     id: number,
     updateTeamStandingDto: UpdateTeamStandingDto,

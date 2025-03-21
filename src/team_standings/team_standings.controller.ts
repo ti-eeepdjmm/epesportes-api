@@ -25,6 +25,11 @@ export class TeamStandingsController {
     return this.teamStandingsService.findAll();
   }
 
+  @Get('ordered')
+  findAllOrdered() {
+    return this.teamStandingsService.findAllOrderedByPoints();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.teamStandingsService.findOne(+id);
