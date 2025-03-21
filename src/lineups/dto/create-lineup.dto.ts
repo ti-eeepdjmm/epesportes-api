@@ -14,5 +14,5 @@ export class CreateLineupDto {
   playerId: number;
 
   @IsBoolean()
-  titular: boolean;
+  starter: boolean;
 }

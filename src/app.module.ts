@@ -6,7 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
 import { TeamsModule } from './teams/teams.module';
 import { PlayersModule } from './players/players.module';
-import { LineupModule } from './lineup/lineup.module';
+import { LineupsModule } from './lineups/lineups.module';
 import { GamesModule } from './games/games.module';
 import { MatchesModule } from './matches/matches.module';
 import { MatchStatsModule } from './match_stats/match_stats.module';
@@ -49,7 +49,7 @@ import { TimelinePostsModule } from './timeline_posts/timeline_posts.module';
     UsersModule,
     TeamsModule,
     PlayersModule,
-    LineupModule,
+    LineupsModule,
     GamesModule,
     MatchesModule,
     MatchStatsModule,

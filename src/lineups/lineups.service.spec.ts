@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { LineupService } from './lineup.service';
+import { LineupsService } from './lineups.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Lineup } from './entities/lineup.entity';
 import { Match } from '../matches/entities/match.entity';
@@ -10,7 +10,7 @@ import { Team } from '../teams/entities/team.entity';
 import { Repository } from 'typeorm';
 
 describe('LineupService', () => {
-  let service: LineupService;
+  let service: LineupsService;
   let lineupRepository: Repository<Lineup>;
   let matchRepository: Repository<Match>;
   let playerRepository: Repository<Player>;
@@ -38,7 +38,7 @@ describe('LineupService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        LineupService,
+        LineupsService,
         { provide: getRepositoryToken(Lineup), useValue: mockRepository },
         { provide: getRepositoryToken(Match), useValue: mockRepository },
         { provide: getRepositoryToken(Player), useValue: mockRepository },
@@ -46,7 +46,7 @@ describe('LineupService', () => {
       ],
     }).compile();
 
-    service = module.get<LineupService>(LineupService);
+    service = module.get<LineupsService>(LineupsService);
     lineupRepository = module.get<Repository<Lineup>>(
       getRepositoryToken(Lineup),
     );

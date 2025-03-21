@@ -25,6 +25,26 @@ export class RankingsController {
     return this.rankingsService.findAll();
   }
 
+  @Get('goals')
+  findAllByGoals() {
+    return this.rankingsService.findAllOrderedByGoals();
+  }
+
+  @Get('yellow-cards')
+  findAllByYellowCards() {
+    return this.rankingsService.findAllOrderedByYellowCards();
+  }
+
+  @Get('red-cards')
+  findAllByRedCards() {
+    return this.rankingsService.findAllOrderedByRedCards();
+  }
+
+  @Get('assists')
+  findAllByAssists() {
+    return this.rankingsService.findAllOrderedByAssists();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.rankingsService.findOne(+id);

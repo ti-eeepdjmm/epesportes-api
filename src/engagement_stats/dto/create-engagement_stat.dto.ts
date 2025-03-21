@@ -12,7 +12,7 @@ export class CreateEngagementStatDto {
   commentsMade: number;
 
   @IsInt()
-  likesReceived: number;
+  reactionsReceived: number;
 
   @IsInt()
   videoViews: number;

@@ -9,16 +9,21 @@ import { Match } from '../matches/entities/match.entity';
 import { Player } from '../players/entities/player.entity';
 
 @Injectable()
-export class LineupService {
+export class LineupsService {
   constructor(
-    @InjectRepository(Lineup) private lineupRepository: Repository<Lineup>,
-    @InjectRepository(Team) private teamRepository: Repository<Team>,
-    @InjectRepository(Match) private matchRepository: Repository<Match>,
-    @InjectRepository(Player) private playerRepository: Repository<Player>,
+    @InjectRepository(Lineup)
+    private lineupRepository: Repository<Lineup>,
+    @InjectRepository(Team)
+    private teamRepository: Repository<Team>,
+    @InjectRepository(Match)
+    private matchRepository: Repository<Match>,
+    @InjectRepository(Player)
+    private playerRepository: Repository<Player>,
   ) {}
 
   async create(createLineupDto: CreateLineupDto): Promise<Lineup> {
-    const { teamId, matchId, playerId, titular } = createLineupDto;
+    const { teamId, matchId, playerId, starter } = createLineupDto;
+
     const team = await this.teamRepository.findOne({ where: { id: teamId } });
     if (!team) throw new NotFoundException('Team not found');
 
@@ -36,17 +41,22 @@ export class LineupService {
       team,
       match,
       player,
-      titular,
+      starter,
     });
     return this.lineupRepository.save(lineup);
   }
 
   async findAll(): Promise<Lineup[]> {
-    return this.lineupRepository.find();
+    return this.lineupRepository.find({
+      relations: ['team', 'match', 'player'],
+    });
   }
 
   async findOne(id: number): Promise<Lineup> {
-    const lineup = await this.lineupRepository.findOne({ where: { id } });
+    const lineup = await this.lineupRepository.findOne({
+      where: { id },
+      relations: ['team', 'match', 'player'],
+    });
     if (!lineup) throw new NotFoundException('Lineup not found');
     return lineup;
   }
@@ -54,6 +64,7 @@ export class LineupService {
   async update(id: number, updateLineupDto: UpdateLineupDto): Promise<Lineup> {
     const lineup = await this.findOne(id);
     Object.assign(lineup, updateLineupDto);
+    // Caso seja necessário atualizar os relacionamentos, busque as novas entidades aqui.
     return this.lineupRepository.save(lineup);
   }
 

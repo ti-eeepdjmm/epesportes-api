@@ -30,11 +30,11 @@ export class Match {
 
   @Column({
     type: 'enum',
-    enum: ['agendada', 'em andamento', 'finalizada'],
-    default: 'agendada',
+    enum: ['scheduled', 'in progress', 'completed'],
+    default: 'scheduled',
   })
   status: string;
 
   @CreateDateColumn()
-  data_hora: Date;
+  dateTime: Date;
 }

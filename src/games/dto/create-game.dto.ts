@@ -3,13 +3,13 @@ import { IsNotEmpty, IsString } from 'class-validator';
 export class CreateGameDto {
   @IsString()
   @IsNotEmpty()
-  nome: string;
+  name: string;
 
   @IsString()
   @IsNotEmpty()
-  descricao: string;
+  description: string;
 
   @IsString()
   @IsNotEmpty()
-  regras: string;
+  rules: string;
 }

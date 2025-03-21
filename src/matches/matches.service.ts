@@ -26,7 +26,7 @@ export class MatchesService {
       score_team1,
       score_team2,
       status,
-      data_hora,
+      dateTime,
     } = createMatchDto;
 
     const game = await this.gameRepository.findOne({ where: { id: gameId } });
@@ -45,7 +45,7 @@ export class MatchesService {
       score_team1,
       score_team2,
       status,
-      data_hora,
+      dateTime,
     });
     return this.matchRepository.save(match);
   }

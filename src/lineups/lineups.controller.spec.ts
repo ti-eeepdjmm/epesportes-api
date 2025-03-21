@@ -1,12 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import { Test, TestingModule } from '@nestjs/testing';
-import { LineupController } from './lineup.controller';
-import { LineupService } from './lineup.service';
+import { LineupsController } from './lineups.controller';
+import { LineupsService } from './lineups.service';
 
 describe('LineupController', () => {
-  let controller: LineupController;
-  let service: LineupService;
+  let controller: LineupsController;
+  let service: LineupsService;
   const mockLineups = [
     {
       id: 1,
@@ -36,10 +37,10 @@ describe('LineupController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [LineupController],
+      controllers: [LineupsController],
       providers: [
         {
-          provide: LineupService,
+          provide: LineupsService,
           useValue: {
             create: jest.fn(),
             findAll: jest.fn(),
@@ -51,8 +52,8 @@ describe('LineupController', () => {
       ],
     }).compile();
 
-    controller = module.get<LineupController>(LineupController);
-    service = module.get<LineupService>(LineupService);
+    controller = module.get<LineupsController>(LineupsController);
+    service = module.get<LineupsService>(LineupsService);
   });
 
   it('should be defined', () => {

@@ -22,7 +22,7 @@ export class EngagementStat {
   commentsMade: number;
 
   @Column({ type: 'int', default: 0 })
-  likesReceived: number;
+  reactionsReceived: number;
 
   @Column({ type: 'int', default: 0 })
   videoViews: number;

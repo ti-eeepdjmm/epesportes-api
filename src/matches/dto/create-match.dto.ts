@@ -19,9 +19,9 @@ export class CreateMatchDto {
   @IsInt()
   score_team2: number;
 
-  @IsEnum(['agendada', 'em andamento', 'finalizada'])
+  @IsEnum(['scheduled', 'in progress', 'completed'])
   status: string;
 
   @IsDateString()
-  data_hora: string;
+  dateTime: Date;
 }

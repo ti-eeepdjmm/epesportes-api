@@ -16,10 +16,15 @@ export class EngagementStatsService {
   ) {}
 
   async create(
-    createEngagementStatDto: CreateEngagementStatDto,
+    _createEngagementStatDto: CreateEngagementStatDto,
   ): Promise<EngagementStat> {
-    const { userId, postsCreated, commentsMade, likesReceived, videoViews } =
-      createEngagementStatDto;
+    const {
+      userId,
+      postsCreated,
+      commentsMade,
+      reactionsReceived,
+      videoViews,
+    } = _createEngagementStatDto;
 
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
@@ -28,7 +33,7 @@ export class EngagementStatsService {
       user,
       postsCreated,
       commentsMade,
-      likesReceived,
+      reactionsReceived,
       videoViews,
     });
     return this.engagementStatRepository.save(engagementStat);

@@ -46,6 +46,33 @@ export class RankingsService {
     if (!ranking) throw new NotFoundException('Ranking not found');
     return ranking;
   }
+  async findAllOrderedByGoals(): Promise<Ranking[]> {
+    return this.rankingRepository.find({
+      relations: ['player'],
+      order: { goals: 'DESC' },
+    });
+  }
+
+  async findAllOrderedByYellowCards(): Promise<Ranking[]> {
+    return this.rankingRepository.find({
+      relations: ['player'],
+      order: { yellowCards: 'DESC' },
+    });
+  }
+
+  async findAllOrderedByRedCards(): Promise<Ranking[]> {
+    return this.rankingRepository.find({
+      relations: ['player'],
+      order: { redCards: 'DESC' },
+    });
+  }
+
+  async findAllOrderedByAssists(): Promise<Ranking[]> {
+    return this.rankingRepository.find({
+      relations: ['player'],
+      order: { assists: 'DESC' },
+    });
+  }
 
   async update(
     id: number,

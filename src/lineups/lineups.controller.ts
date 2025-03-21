@@ -7,36 +7,36 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { LineupService } from './lineup.service';
+import { LineupsService } from './lineups.service';
 import { CreateLineupDto } from './dto/create-lineup.dto';
 import { UpdateLineupDto } from './dto/update-lineup.dto';
 
-@Controller('lineup')
-export class LineupController {
-  constructor(private readonly lineupService: LineupService) {}
+@Controller('lineups')
+export class LineupsController {
+  constructor(private readonly lineupsService: LineupsService) {}
 
   @Post()
   create(@Body() createLineupDto: CreateLineupDto) {
-    return this.lineupService.create(createLineupDto);
+    return this.lineupsService.create(createLineupDto);
   }
 
   @Get()
   findAll() {
-    return this.lineupService.findAll();
+    return this.lineupsService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.lineupService.findOne(+id);
+    return this.lineupsService.findOne(+id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateLineupDto: UpdateLineupDto) {
-    return this.lineupService.update(+id, updateLineupDto);
+    return this.lineupsService.update(+id, updateLineupDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.lineupService.remove(+id);
+    return this.lineupsService.remove(+id);
   }
 }
