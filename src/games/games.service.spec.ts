@@ -12,9 +12,10 @@ describe('GamesService', () => {
   beforeEach(async () => {
     const mockRepository = {
       create: jest.fn().mockImplementation((dto) => dto as Game),
-      save: jest.fn().mockResolvedValue({ id: 1, ...CreateGameDto }),
+      save: jest.fn(),
       find: jest.fn().mockResolvedValue([]),
       findOne: jest.fn().mockResolvedValue(null),
+      delete: jest.fn().mockResolvedValue({ affected: 1 }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -32,12 +33,12 @@ describe('GamesService', () => {
   });
 
   it('should create a game', async () => {
-    const gameDto = {
-      nome: 'Futebol',
-      descricao: 'Jogo de bola',
-      regras: 'Regras padrão',
+    const gameDto: CreateGameDto = {
+      name: 'Futebol',
+      description: 'Jogo de bola',
+      rules: 'Regras padrão',
     };
-    const savedGame = { id: 1, ...gameDto };
+    const savedGame = { id: 1, ...gameDto, created_at: new Date() };
 
     jest.spyOn(repository, 'save').mockResolvedValue(savedGame as Game);
 

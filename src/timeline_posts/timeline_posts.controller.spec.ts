@@ -3,10 +3,18 @@ import { TimelinePostsService } from './timeline_posts.service';
 import { CreateTimelinePostDto } from './dto/create-timeline_post.dto';
 import { UpdateTimelinePostDto } from './dto/update-timeline_post.dto';
 import { mockTimelinePost, mockTimelinePosts } from '../../test/mocks';
-import { TimelinePost } from './schemas/timeline_posts.schema';
 
-jest.mock('./timeline_posts.service');
-const timelinePosts = mockTimelinePosts.map((post) => new TimelinePost(post));
+// Mock do schema para evitar que o construtor real (que estende Document) seja executado
+jest.mock('./schemas/timeline_post.schema', () => {
+  class TimelinePostMock {
+    constructor(data: any) {
+      Object.assign(this, data);
+    }
+  }
+  return { TimelinePost: TimelinePostMock };
+});
+
+import { TimelinePost } from './schemas/timeline_post.schema';
 
 describe('TimelinePostsController', () => {
   let controller: TimelinePostsController;
@@ -29,15 +37,20 @@ describe('TimelinePostsController', () => {
   });
 
   it('should return all timeline posts', async () => {
+    const timelinePosts = mockTimelinePosts.map(
+      (post) => new TimelinePost(post),
+    );
     jest.spyOn(service, 'findAll').mockResolvedValue(timelinePosts);
-    await expect(controller.findAll()).resolves.toEqual(mockTimelinePost);
+    await expect(controller.findAll()).resolves.toEqual(timelinePosts);
   });
 
   it('should return a single post', async () => {
-    jest
-      .spyOn(service, 'findOne')
-      .mockResolvedValue(new TimelinePost(mockTimelinePost));
-    await expect(controller.findOne('1')).resolves.toEqual(mockTimelinePost);
+    const timelinePostInstance = new TimelinePost(mockTimelinePost);
+    jest.spyOn(service, 'findOne').mockResolvedValue(timelinePostInstance);
+    const validId = '507f1f77bcf86cd799439011';
+    await expect(controller.findOne(validId)).resolves.toEqual(
+      timelinePostInstance,
+    );
   });
 
   it('should create a new post', async () => {
@@ -45,26 +58,27 @@ describe('TimelinePostsController', () => {
       userId: 'user123',
       content: 'Test post',
     };
-    jest
-      .spyOn(service, 'create')
-      .mockResolvedValue(new TimelinePost(mockTimelinePost));
-    await expect(controller.create(dto)).resolves.toEqual(mockTimelinePost);
+    const timelinePostInstance = new TimelinePost(mockTimelinePost);
+    jest.spyOn(service, 'create').mockResolvedValue(timelinePostInstance);
+    await expect(controller.create(dto)).resolves.toEqual(timelinePostInstance);
   });
 
   it('should update a post', async () => {
     const dto: UpdateTimelinePostDto = { content: 'Updated content' };
-    jest
-      .spyOn(service, 'update')
-      .mockResolvedValue(new TimelinePost(mockTimelinePost));
-    await expect(controller.update('1', dto)).resolves.toEqual(
-      mockTimelinePost,
+    const timelinePostInstance = new TimelinePost(mockTimelinePost);
+    jest.spyOn(service, 'update').mockResolvedValue(timelinePostInstance);
+    const validId = '507f1f77bcf86cd799439011';
+    await expect(controller.update(validId, dto)).resolves.toEqual(
+      timelinePostInstance,
     );
   });
 
   it('should delete a post', async () => {
-    jest
-      .spyOn(service, 'remove')
-      .mockResolvedValue(new TimelinePost(mockTimelinePost));
-    await expect(controller.remove('1')).resolves.toEqual(mockTimelinePost);
+    const timelinePostInstance = new TimelinePost(mockTimelinePost);
+    jest.spyOn(service, 'remove').mockResolvedValue(timelinePostInstance);
+    const validId = '507f1f77bcf86cd799439011';
+    await expect(controller.remove(validId)).resolves.toEqual(
+      timelinePostInstance,
+    );
   });
 });

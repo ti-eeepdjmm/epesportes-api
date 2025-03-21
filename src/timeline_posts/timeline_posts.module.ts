@@ -5,7 +5,7 @@ import { TimelinePostsController } from './timeline_posts.controller';
 import {
   TimelinePost,
   TimelinePostSchema,
-} from './schemas/timeline_posts.schema';
+} from './schemas/timeline_post.schema';
 
 @Module({
   imports: [

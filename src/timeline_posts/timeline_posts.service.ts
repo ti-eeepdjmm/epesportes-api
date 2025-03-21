@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { TimelinePost } from './schemas/timeline_posts.schema';
+import { TimelinePost } from './schemas/timeline_post.schema';
 import { CreateTimelinePostDto } from './dto/create-timeline_post.dto';
 import { UpdateTimelinePostDto } from './dto/update-timeline_post.dto';
 
