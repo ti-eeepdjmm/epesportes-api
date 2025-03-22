@@ -2,7 +2,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TimelinePostsService } from './timeline_posts.service';
 import { getModelToken } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
 import { mockTimelinePost } from '../../test/mocks';
 
 class TimelinePostModelFake {
