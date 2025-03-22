@@ -16,6 +16,8 @@ import { EngagementStatsModule } from './engagement_stats/engagement_stats.modul
 import { UserPreferencesModule } from './user_preferences/user_preferences.module';
 import { TimelinePostsModule } from './timeline_posts/timeline_posts.module';
 import { MentionsModule } from './mentions/mentions.module';
+import { PollsModule } from './polls/polls.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -60,6 +62,8 @@ import { MentionsModule } from './mentions/mentions.module';
     UserPreferencesModule,
     TimelinePostsModule,
     MentionsModule,
+    PollsModule,
+    NotificationsModule,
   ],
 })
 export class AppModule {}
