@@ -12,7 +12,7 @@ describe('NotificationsController', () => {
   const mockNotification = {
     _id: '123',
     user_id: 'user1',
-    type: NotificationType.LIKE,
+    type: NotificationType.GAME,
     reference: '456',
     date: new Date(),
     read: false,
@@ -46,7 +46,7 @@ describe('NotificationsController', () => {
     it('should create a notification', async () => {
       const createNotificationDto: CreateNotificationDto = {
         user_id: 'user1',
-        type: NotificationType.LIKE,
+        type: NotificationType.GAME,
         reference: '456',
         read: false,
       };

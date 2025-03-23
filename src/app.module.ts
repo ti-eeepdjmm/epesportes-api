@@ -18,6 +18,7 @@ import { TimelinePostsModule } from './timeline_posts/timeline_posts.module';
 import { MentionsModule } from './mentions/mentions.module';
 import { PollsModule } from './polls/polls.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     MentionsModule,
     PollsModule,
     NotificationsModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
