@@ -19,6 +19,7 @@ import { MentionsModule } from './mentions/mentions.module';
 import { PollsModule } from './polls/polls.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AppGatewayModule } from './app-gateway/app-gateway.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { AppGatewayModule } from './app-gateway/app-gateway.module';
     PollsModule,
     NotificationsModule,
     AppGatewayModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
