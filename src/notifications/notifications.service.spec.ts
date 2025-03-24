@@ -15,7 +15,7 @@ import { UpdateNotificationDto } from './dto/update-notification.dto';
 const mockNotification: NotificationDocument = {
   _id: '123',
   user_id: 'user1',
-  type: NotificationType.LIKE,
+  type: NotificationType.GAME,
   reference: '456',
   date: new Date(),
   read: false,
@@ -74,7 +74,7 @@ describe('NotificationsService', () => {
     it('should create a notification', async () => {
       const dto: CreateNotificationDto = {
         user_id: 'user1',
-        type: NotificationType.LIKE,
+        type: NotificationType.GAME,
         reference: '456',
         read: false,
       };
