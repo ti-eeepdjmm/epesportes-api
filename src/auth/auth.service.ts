@@ -3,6 +3,7 @@ import { SupabaseClient, Session, User } from '@supabase/supabase-js';
 import { SUPABASE_CLIENT } from './supabase-client.provider';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 interface AuthResponse {
   user: User | null;
@@ -22,7 +23,7 @@ export class AuthService {
     });
 
     if (error) {
-      throw new Error(error.message || 'Erro inesperado durante o registro');
+      throw new Error(error.message || 'Unexpected error during registration');
     }
 
     return {
@@ -38,7 +39,7 @@ export class AuthService {
     });
 
     if (error) {
-      throw new Error(error.message || 'Erro inesperado durante o login');
+      throw new Error(error.message || 'Unexpected error during login');
     }
 
     return {
@@ -51,7 +52,7 @@ export class AuthService {
     const { data, error } = await this.supabase.auth.getUser(token);
 
     if (error || !data.user) {
-      throw new Error(error?.message || 'Erro inesperado ao obter usuário');
+      throw new Error(error?.message || 'Unexpected error retrieving user');
     }
 
     return data.user;
@@ -66,15 +67,49 @@ export class AuthService {
     });
 
     if (error) {
-      throw new Error(
-        error.message || 'Erro inesperado ao realizar login com Google',
-      );
+      throw new Error(error.message || 'Unexpected error during Google login');
     }
 
     if (!data?.url) {
-      throw new Error('Nenhuma URL retornada pelo Supabase');
+      throw new Error('No URL returned from Supabase');
     }
 
     return { url: data.url };
+  }
+
+  async recoverPassword(email: string): Promise<{ message: string }> {
+    const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: process.env.RESET_PASSWORD_REDIRECT_URL,
+    });
+
+    if (error) {
+      throw new Error(error.message || 'Error requesting password recovery');
+    }
+
+    return { message: 'Password recovery email sent successfully' };
+  }
+
+  async logout(): Promise<{ message: string }> {
+    const { error } = await this.supabase.auth.signOut();
+
+    if (error) {
+      throw new Error(error.message ?? 'Error during logout');
+    }
+
+    return { message: 'Logout successful' };
+  }
+
+  async updatePassword({
+    newPassword,
+  }: UpdatePasswordDto): Promise<{ message: string }> {
+    const { error } = await this.supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) {
+      throw new Error(error.message || 'Error updating password');
+    }
+
+    return { message: 'Password updated successfully' };
   }
 }

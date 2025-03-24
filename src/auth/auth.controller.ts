@@ -11,6 +11,8 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { User } from '@supabase/supabase-js';
+import { RecoverPasswordDto } from './dto/recover-password.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -72,5 +74,20 @@ export class AuthController {
         error instanceof Error ? error.message : 'Erro inesperado';
       throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
     }
+  }
+  // auth.controller.ts
+  @Post('recover-password')
+  async recoverPassword(@Body() dto: RecoverPasswordDto) {
+    return this.authService.recoverPassword(dto.email);
+  }
+
+  @Post('update-password')
+  async updatePassword(@Body() dto: UpdatePasswordDto) {
+    return this.authService.updatePassword(dto);
+  }
+
+  @Post('logout')
+  async logout() {
+    return this.authService.logout();
   }
 }
