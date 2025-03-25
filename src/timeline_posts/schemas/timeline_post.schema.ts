@@ -4,27 +4,27 @@ import { Document } from 'mongoose';
 // Subesquema para Reações
 @Schema({ _id: false }) // Evita criar um _id automático para este subdocumento
 class Reactions {
-  @Prop({ type: [String], default: [] }) liked: string[];
-  @Prop({ type: [String], default: [] }) beast: string[];
-  @Prop({ type: [String], default: [] }) plays_great: string[];
-  @Prop({ type: [String], default: [] }) amazing_goal: string[];
-  @Prop({ type: [String], default: [] }) stylish: string[];
+  @Prop({ type: [Number], default: [] }) liked: number[];
+  @Prop({ type: [Number], default: [] }) beast: number[];
+  @Prop({ type: [Number], default: [] }) plays_great: number[];
+  @Prop({ type: [Number], default: [] }) amazing_goal: number[];
+  @Prop({ type: [Number], default: [] }) stylish: number[];
 }
-const ReactionsSchema = SchemaFactory.createForClass(Reactions);
+export const ReactionsSchema = SchemaFactory.createForClass(Reactions);
 
 // Subesquema para Comentários
 @Schema({ _id: false })
 class Comment {
-  @Prop({ required: true }) userId: string;
+  @Prop({ required: true }) userId: number;
   @Prop({ required: true }) content: string;
   @Prop({ type: Date, default: Date.now }) commentDate: Date;
 }
-const CommentSchema = SchemaFactory.createForClass(Comment);
+export const CommentSchema = SchemaFactory.createForClass(Comment);
 
 // Esquema Principal para TimelinePost
 @Schema({ timestamps: { createdAt: 'postDate', updatedAt: false } })
 export class TimelinePost extends Document {
-  @Prop({ required: true }) userId: string;
+  @Prop({ required: true }) userId: number;
   @Prop({ required: true }) content: string;
   @Prop({ type: [String], default: [] }) media: string[];
   @Prop({ type: ReactionsSchema, default: {} }) reactions: Reactions;

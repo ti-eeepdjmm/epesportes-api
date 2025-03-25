@@ -1,154 +1,168 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppGateway } from './app.gateway';
+import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import {
   NewPostPayload,
   NotificationPayload,
   MatchUpdatePayload,
   PollUpdatePayload,
-} from 'src/common/types/socket-events.types';
+  GlobalNotificationPayload,
+} from '../../common/types/socket-events.types';
 
 describe('AppGateway', () => {
   let gateway: AppGateway;
-  let mockEmit: jest.Mock;
-  let mockToEmit: jest.Mock;
-  let mockTo: jest.Mock;
-  let mockServer: Partial<Server>;
+  let serverEmitMock: jest.Mock;
+  let serverToMock: jest.Mock;
 
   beforeEach(async () => {
+    serverEmitMock = jest.fn();
+    serverToMock = jest.fn().mockReturnValue({ emit: serverEmitMock });
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [AppGateway],
     }).compile();
 
     gateway = module.get<AppGateway>(AppGateway);
+    gateway.server = {
+      emit: serverEmitMock,
+      to: serverToMock,
+    } as unknown as Server;
 
-    // Cria mocks tipados para os métodos utilizados do Socket.IO
-    mockEmit = jest.fn();
-    mockToEmit = jest.fn();
-    mockTo = jest.fn().mockReturnValue({ emit: mockToEmit });
-    mockServer = {
-      emit: mockEmit,
-      to: mockTo,
-    };
-
-    // Atribui o mock do servidor garantindo a tipagem correta
-    gateway.server = mockServer as Server;
-  });
-
-  it('should be defined', () => {
-    expect(gateway).toBeDefined();
+    jest.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
   });
 
   describe('afterInit', () => {
-    it('should log the initialization message', () => {
-      const logSpy = jest.spyOn(gateway['logger'], 'log');
+    it('should log server init message', () => {
       gateway.afterInit();
-      expect(logSpy).toHaveBeenCalledWith('Servidor WebSocket iniciado');
+      expect(Logger.prototype.log).toHaveBeenCalledWith(
+        'Servidor WebSocket iniciado',
+      );
     });
   });
 
   describe('handleConnection', () => {
-    it('should log the connection message', () => {
-      const socket: Socket = {
-        id: '123',
-        join: jest.fn(),
-      } as Partial<Socket> as Socket;
-      const logSpy = jest.spyOn(gateway['logger'], 'log');
-      gateway.handleConnection(socket);
-      expect(logSpy).toHaveBeenCalledWith(`Cliente conectado: ${socket.id}`);
+    it('should log when a client connects', () => {
+      const client = { id: 'socket123' } as Socket;
+      gateway.handleConnection(client);
+      expect(Logger.prototype.log).toHaveBeenCalledWith(
+        'Cliente conectado: socket123',
+      );
     });
   });
 
   describe('handleDisconnect', () => {
-    it('should log the disconnect message', () => {
-      const socket: Socket = {
-        id: '456',
-        join: jest.fn(),
-      } as Partial<Socket> as Socket;
-      const logSpy = jest.spyOn(gateway['logger'], 'log');
-      gateway.handleDisconnect(socket);
-      expect(logSpy).toHaveBeenCalledWith(`Cliente desconectado: ${socket.id}`);
+    it('should log when a client disconnects', () => {
+      const client = { id: 'socket999' } as Socket;
+      gateway.handleDisconnect(client);
+      expect(Logger.prototype.log).toHaveBeenCalledWith(
+        'Cliente desconectado: socket999',
+      );
     });
   });
 
   describe('handleJoin', () => {
-    it('should join the room and log a message when join exists', () => {
-      const socket: Socket = {
-        id: '789',
-        join: jest.fn(),
-      } as Partial<Socket> as Socket;
-      const userId: string = 'user123';
-      const logSpy = jest.spyOn(gateway['logger'], 'log');
-      gateway.handleJoin(userId, socket);
-      expect(socket.join).toHaveBeenCalledWith(`user-${userId}`);
-      expect(logSpy).toHaveBeenCalledWith(
-        `Usuário ${userId} entrou na sala user-${userId}`,
+    it('should join room and log if socket.join exists', () => {
+      const socket = {
+        id: 'abc123',
+        join: jest.fn().mockResolvedValue(undefined),
+      } as unknown as Socket;
+
+      gateway.handleJoin('7', socket);
+      expect(socket.join).toHaveBeenCalledWith('user-7');
+      expect(Logger.prototype.log).toHaveBeenCalledWith(
+        'Usuário 7 entrou na sala user-7',
       );
     });
 
-    it('should log an error when join method is not available', () => {
-      const socket: Socket = { id: '789' } as Partial<Socket> as Socket;
-      const userId: string = 'user123';
-      const errorSpy = jest.spyOn(gateway['logger'], 'error');
-      gateway.handleJoin(userId, socket);
-      expect(errorSpy).toHaveBeenCalledWith(
-        `O método join não está disponível no socket ${socket.id}`,
+    it('should log error if socket.join is not a function', () => {
+      const socket = { id: 'zzz123', join: undefined } as unknown as Socket;
+      gateway.handleJoin('10', socket);
+      expect(Logger.prototype.error).toHaveBeenCalledWith(
+        'O método join não está disponível no socket zzz123',
       );
     });
   });
 
   describe('emitNewPost', () => {
-    it('should emit the new post event', () => {
+    it('should emit feed:new-post event', () => {
       const payload: NewPostPayload = {
-        postId: '1',
-        author: 'John Doe',
+        postId: 'post123',
+        author: 2,
         timestamp: Date.now(),
       };
+
       gateway.emitNewPost(payload);
-      expect(mockEmit).toHaveBeenCalledWith('feed:new-post', payload);
+      expect(serverEmitMock).toHaveBeenCalledWith('feed:new-post', payload);
     });
   });
 
   describe('emitNotification', () => {
-    it('should emit a notification event to a specific room', () => {
+    it('should emit feed:new-notification event to specific user', () => {
       const payload: NotificationPayload = {
         type: 'comment',
-        message: 'User liked your post',
-        link: '/post/1',
+        message: 'Alguém comentou!',
+        link: '/link',
+        sender: { id: 1, name: 'Alice', avatar: 'img.jpg' },
         timestamp: Date.now(),
       };
-      const userId: string = 'user123';
-      gateway.emitNotification(userId, payload);
-      expect(mockTo).toHaveBeenCalledWith(`user-${userId}`);
-      expect(mockToEmit).toHaveBeenCalledWith('user:notification', payload);
+
+      gateway.emitNotification(5, payload);
+      expect(serverToMock).toHaveBeenCalledWith('user-5');
+      expect(serverEmitMock).toHaveBeenCalledWith('feed:new-comment', payload);
     });
   });
 
   describe('emitMatchUpdate', () => {
-    it('should emit the game update event', () => {
+    it('should emit Match:update event', () => {
       const payload: MatchUpdatePayload = {
-        matchId: 'game123',
-        score: '2-1',
-        status: 'First Half',
-        currentTime: '15:23',
+        matchId: 1,
+        type: 'goal',
+        title: 'Gol!',
+        message: '1x0',
+        teams: {
+          team1: { name: 'A', logoUrl: 'a.png', score: 1 },
+          team2: { name: 'B', logoUrl: 'b.png', score: 0 },
+        },
+        timestamp: Date.now(),
       };
+
       gateway.emitMatchUpdate(payload);
-      expect(mockEmit).toHaveBeenCalledWith('Match:update', payload);
+      expect(serverEmitMock).toHaveBeenCalledWith('Match:update', payload);
     });
   });
 
   describe('emitPollUpdate', () => {
-    it('should emit the poll update event', () => {
+    it('should emit poll:update event', () => {
       const payload: PollUpdatePayload = {
-        pollId: 'poll456',
-        options: [
-          { id: 'option1', text: 'Option 1', votes: 10 },
-          { id: 'option2', text: 'Option 2', votes: 5 },
-        ],
+        pollId: 'poll1',
+        title: 'Nova enquete',
+        options: [],
+        totalVotes: 0,
       };
+
       gateway.emitPollUpdate(payload);
-      expect(mockEmit).toHaveBeenCalledWith('poll:update', payload);
+      expect(serverEmitMock).toHaveBeenCalledWith('poll:update', payload);
+    });
+  });
+
+  describe('emitGlobalNotification', () => {
+    it('should emit global:notification event', () => {
+      const payload: GlobalNotificationPayload = {
+        type: 'event',
+        title: 'Aviso geral',
+        message: 'Mensagem para todos',
+        link: '/polls/3',
+        timestamp: Date.now(),
+      };
+
+      gateway.emitGlobalNotification(payload);
+      expect(serverEmitMock).toHaveBeenCalledWith(
+        'global:notification',
+        payload,
+      );
     });
   });
 });
