@@ -1,79 +1,281 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Test, TestingModule } from '@nestjs/testing';
 import { TimelinePostsService } from './timeline_posts.service';
 import { getModelToken } from '@nestjs/mongoose';
-import { mockTimelinePost } from '../../test/mocks';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { TimelinePost } from './schemas/timeline_post.schema';
+import { Model, Types } from 'mongoose';
+import { AppGateway } from '../app-gateway/app/app.gateway';
+import { User } from '../users/entities/user.entity';
+import { Repository } from 'typeorm';
+import { CreateTimelinePostDto } from './dto/create-timeline_post.dto';
+import { UpdateTimelinePostDto } from './dto/update-timeline_post.dto';
+import { NotFoundException } from '@nestjs/common';
+import { Team } from '../teams/entities/team.entity';
 
-class TimelinePostModelFake {
-  constructor(private data: any) {
-    Object.assign(this, data);
-  }
+const mockTeam: Team = {
+  id: 1,
+  name: 'Epesportes FC',
+  logo: 'https://example.com/logos/epesportes-fc.png',
+  createdAt: new Date('2024-01-10T14:00:00Z'),
+  // Adicione outros campos do Team se houver
+};
 
-  save() {
-    return Promise.resolve(mockTimelinePost);
-  }
-
-  static find() {
-    return { exec: jest.fn().mockResolvedValue([mockTimelinePost]) };
-  }
-
-  static findById(id: string) {
-    return { exec: jest.fn().mockResolvedValue(mockTimelinePost) };
-  }
-
-  static findByIdAndUpdate(id: string, update: any, options: any) {
-    return { exec: jest.fn().mockResolvedValue(mockTimelinePost) };
-  }
-
-  static findByIdAndDelete(id: string) {
-    return { exec: jest.fn().mockResolvedValue(mockTimelinePost) };
-  }
-}
+const mockUser: User = {
+  id: 1,
+  name: 'Carlos Souza',
+  email: 'carlos.souza@example.com',
+  password: '$2b$10$AbcD1234HashedSenhaAqui', // hash fictício
+  profilePhoto: 'https://example.com/profiles/carlos.png',
+  favoriteTeam: mockTeam,
+  isAthlete: true,
+  birthDate: new Date('2002-06-15'),
+  createdAt: new Date('2025-03-25T10:30:00Z'),
+};
 
 describe('TimelinePostsService', () => {
   let service: TimelinePostsService;
+  let timelinePostModel: jest.Mocked<Model<TimelinePost>>;
+  let userRepository: jest.Mocked<Repository<User>>;
+
+  const appGateway = {
+    emitNewPost: jest.fn(),
+    emitNotification: jest.fn(),
+    emitMatchUpdate: jest.fn(),
+    emitPollUpdate: jest.fn(),
+    emitGlobalNotification: jest.fn(),
+    afterInit: jest.fn(),
+    handleConnection: jest.fn(),
+    handleDisconnect: jest.fn(),
+    logger: {
+      log: jest.fn(),
+      error: jest.fn(),
+    },
+    server: {
+      emit: jest.fn(),
+      to: jest.fn().mockReturnValue({ emit: jest.fn() }),
+    },
+  } as unknown as AppGateway;
+
+  const mockObjectId = new Types.ObjectId().toHexString();
 
   beforeEach(async () => {
+    timelinePostModel = {
+      find: jest.fn(),
+      findById: jest.fn(),
+      findByIdAndUpdate: jest.fn(),
+      findByIdAndDelete: jest.fn(),
+    } as unknown as jest.Mocked<Model<TimelinePost>>;
+
+    userRepository = {
+      findOne: jest.fn(),
+    } as unknown as jest.Mocked<Repository<User>>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TimelinePostsService,
         {
-          provide: getModelToken('TimelinePost'),
-          useValue: TimelinePostModelFake,
+          provide: getModelToken(TimelinePost.name),
+          useValue: timelinePostModel,
         },
+        { provide: getRepositoryToken(User), useValue: userRepository },
+        { provide: AppGateway, useValue: appGateway as unknown as AppGateway },
       ],
     }).compile();
 
     service = module.get<TimelinePostsService>(TimelinePostsService);
   });
 
-  it('should create a post', async () => {
-    const dto = { userId: 'user123', content: 'Test post' };
-    const result = await service.create(dto);
-    expect(result).toEqual(mockTimelinePost);
+  describe('create', () => {
+    it('should create a new post and emit event', async () => {
+      const dto: CreateTimelinePostDto = {
+        userId: 2,
+        content: 'Post!',
+      };
+
+      const mockSave = jest.fn().mockResolvedValue({
+        _id: mockObjectId,
+        userId: dto.userId,
+        content: dto.content,
+      } as TimelinePost);
+
+      const mockPost = {
+        _id: mockObjectId,
+        userId: dto.userId,
+        content: dto.content,
+        save: mockSave,
+      } as unknown as TimelinePost;
+
+      const mockModel = jest.fn(
+        () => mockPost,
+      ) as unknown as Model<TimelinePost>;
+
+      const customService = new TimelinePostsService(
+        mockModel,
+        userRepository,
+        appGateway,
+      );
+
+      const result = await customService.create(dto);
+
+      expect(appGateway.emitNewPost).toHaveBeenCalledWith(
+        expect.objectContaining({
+          author: dto.userId,
+          postId: expect.any(String),
+        }),
+      );
+
+      expect(mockSave).toHaveBeenCalled();
+      expect(result).toEqual(
+        expect.objectContaining({ _id: mockObjectId, userId: dto.userId }),
+      );
+    });
   });
 
-  it('should return all posts', async () => {
-    const result = await service.findAll();
-    expect(result).toEqual([mockTimelinePost]);
+  describe('findAll', () => {
+    it('should return all posts', async () => {
+      const posts: TimelinePost[] = [
+        {
+          _id: mockObjectId,
+          content: 'Exemplo',
+          userId: 2,
+        } as unknown as TimelinePost,
+      ];
+
+      timelinePostModel.find.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(posts),
+      } as any);
+
+      const result = await service.findAll();
+      expect(result).toEqual(posts);
+    });
   });
 
-  it('should return one post', async () => {
-    const validId = '507f1f77bcf86cd799439011';
-    const result = await service.findOne(validId);
-    expect(result).toEqual(mockTimelinePost);
+  describe('findOne', () => {
+    it('should return a post by id', async () => {
+      const post = {
+        _id: mockObjectId,
+        content: 'Test',
+        userId: 2,
+      } as unknown as TimelinePost;
+
+      timelinePostModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(post),
+      } as any);
+
+      const result = await service.findOne(mockObjectId);
+      expect(result).toEqual(post);
+    });
+
+    it('should throw if invalid ObjectId', async () => {
+      await expect(service.findOne('123')).rejects.toThrow(
+        'Invalid ObjectId format',
+      );
+    });
   });
 
-  it('should update a post', async () => {
-    const validId = '507f1f77bcf86cd799439011';
-    const dto = { content: 'Updated content' };
-    const result = await service.update(validId, dto);
-    expect(result).toEqual(mockTimelinePost);
+  describe('update', () => {
+    it('should emit comment notification on new comment', async () => {
+      const id = mockObjectId;
+      const postBefore = {
+        _id: id,
+        userId: 2,
+        comments: [],
+        reactions: {},
+      } as unknown as TimelinePost;
+
+      const updateDto: UpdateTimelinePostDto = {
+        comments: [{ userId: 4, content: 'Comentário!' }],
+      };
+
+      timelinePostModel.findById.mockResolvedValue(postBefore);
+
+      timelinePostModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          ...postBefore,
+          ...updateDto,
+        } as TimelinePost),
+      } as any);
+
+      userRepository.findOne.mockResolvedValue(mockUser);
+
+      const result = await service.update(id, updateDto);
+
+      expect(appGateway.emitNotification).toHaveBeenCalledWith(
+        2,
+        expect.objectContaining({ type: 'comment' }),
+      );
+
+      expect(result?.comments?.length).toBe(1);
+    });
+
+    it('should emit reaction notification on new reaction', async () => {
+      const id = mockObjectId;
+      const postBefore = {
+        _id: id,
+        userId: 2,
+        comments: [],
+        reactions: { liked: [2, 1] },
+      } as unknown as TimelinePost;
+
+      const updateDto: UpdateTimelinePostDto = {
+        reactions: { liked: [2, 3, 1] },
+      };
+
+      timelinePostModel.findById.mockResolvedValue(postBefore);
+
+      timelinePostModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          ...postBefore,
+          ...updateDto,
+        } as TimelinePost),
+      } as any);
+
+      userRepository.findOne.mockResolvedValue(mockUser);
+
+      const result = await service.update(id, updateDto);
+
+      expect(appGateway.emitNotification).toHaveBeenCalledWith(
+        2,
+        expect.objectContaining({ type: 'reaction' }),
+      );
+
+      expect(result?.reactions?.liked).toContain(2);
+    });
+
+    it('should throw NotFoundException if post not found', async () => {
+      timelinePostModel.findById.mockResolvedValue(null);
+
+      await expect(
+        service.update(mockObjectId, {} as UpdateTimelinePostDto),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw if ObjectId is invalid', async () => {
+      await expect(
+        service.update('invalid-id', {} as UpdateTimelinePostDto),
+      ).rejects.toThrow('Invalid ObjectId format');
+    });
   });
 
-  it('should delete a post', async () => {
-    const validId = '507f1f77bcf86cd799439011';
-    const result = await service.remove(validId);
-    expect(result).toEqual(mockTimelinePost);
+  describe('remove', () => {
+    it('should delete the post', async () => {
+      const deleted = { _id: mockObjectId } as TimelinePost;
+
+      timelinePostModel.findByIdAndDelete.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(deleted),
+      } as any);
+
+      const result = await service.remove(mockObjectId);
+      expect(result).toEqual(deleted);
+    });
+
+    it('should throw if ObjectId is invalid', async () => {
+      await expect(service.remove('bad')).rejects.toThrow(
+        'Invalid ObjectId format',
+      );
+    });
   });
 });

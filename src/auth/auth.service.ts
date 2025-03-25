@@ -16,10 +16,19 @@ export class AuthService {
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
   ) {}
 
-  async register({ email, password }: RegisterDto): Promise<AuthResponse> {
+  async register({
+    full_name,
+    email,
+    password,
+  }: RegisterDto): Promise<AuthResponse> {
     const { data, error } = await this.supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          full_name: full_name,
+        },
+      },
     });
 
     if (error) {
