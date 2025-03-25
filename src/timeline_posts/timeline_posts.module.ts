@@ -6,12 +6,14 @@ import {
   TimelinePost,
   TimelinePostSchema,
 } from './schemas/timeline_post.schema';
+import { AppGatewayModule } from 'src/app-gateway/app-gateway.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: TimelinePost.name, schema: TimelinePostSchema },
     ]),
+    AppGatewayModule,
   ],
   controllers: [TimelinePostsController],
   providers: [TimelinePostsService],

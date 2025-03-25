@@ -4,16 +4,26 @@ import { Model, Types } from 'mongoose';
 import { TimelinePost } from './schemas/timeline_post.schema';
 import { CreateTimelinePostDto } from './dto/create-timeline_post.dto';
 import { UpdateTimelinePostDto } from './dto/update-timeline_post.dto';
+import { AppGateway } from '../app-gateway/app/app.gateway';
+import { NewPostPayload } from 'src/common/types/socket-events.types';
 
 @Injectable()
 export class TimelinePostsService {
   constructor(
     @InjectModel(TimelinePost.name)
     private timelinePostModel: Model<TimelinePost>,
+    private readonly appGateway: AppGateway,
   ) {}
 
   async create(createPostDto: CreateTimelinePostDto): Promise<TimelinePost> {
     const newPost = new this.timelinePostModel(createPostDto);
+    // enviar notificacao
+    const payload: NewPostPayload = {
+      postId: newPost._id as string,
+      author: newPost.userId,
+      timestamp: Date.now(),
+    };
+    this.appGateway.emitNewPost(payload);
     return newPost.save();
   }
 

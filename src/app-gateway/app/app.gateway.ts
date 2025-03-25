@@ -13,9 +13,8 @@ import { Server, Socket } from 'socket.io';
 import {
   NewPostPayload,
   NotificationPayload,
-  GameUpdatePayload,
+  MatchUpdatePayload,
   PollUpdatePayload,
-  ChallengeUpdatePayload,
 } from 'src/common/types/socket-events.types';
 
 @WebSocketGateway({
@@ -74,17 +73,12 @@ export class AppGateway
   }
 
   // Emite atualização de jogo em tempo real para todos os usuários
-  emitGameUpdate(payload: GameUpdatePayload): void {
-    this.server.emit('game:update', payload);
+  emitMatchUpdate(payload: MatchUpdatePayload): void {
+    this.server.emit('Match:update', payload);
   }
 
   // Emite atualização de enquete para todos os usuários
   emitPollUpdate(payload: PollUpdatePayload): void {
     this.server.emit('poll:update', payload);
-  }
-
-  // Emite atualização de desafio para todos os usuários
-  emitChallengeUpdate(payload: ChallengeUpdatePayload): void {
-    this.server.emit('challenge:update', payload);
   }
 }

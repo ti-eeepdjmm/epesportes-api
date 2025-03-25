@@ -5,9 +5,8 @@ import { Server, Socket } from 'socket.io';
 import {
   NewPostPayload,
   NotificationPayload,
-  GameUpdatePayload,
+  MatchUpdatePayload,
   PollUpdatePayload,
-  ChallengeUpdatePayload,
 } from 'src/common/types/socket-events.types';
 
 describe('AppGateway', () => {
@@ -114,9 +113,10 @@ describe('AppGateway', () => {
   describe('emitNotification', () => {
     it('should emit a notification event to a specific room', () => {
       const payload: NotificationPayload = {
-        type: 'like',
+        type: 'comment',
         message: 'User liked your post',
         link: '/post/1',
+        timestamp: Date.now(),
       };
       const userId: string = 'user123';
       gateway.emitNotification(userId, payload);
@@ -125,16 +125,16 @@ describe('AppGateway', () => {
     });
   });
 
-  describe('emitGameUpdate', () => {
+  describe('emitMatchUpdate', () => {
     it('should emit the game update event', () => {
-      const payload: GameUpdatePayload = {
-        gameId: 'game123',
+      const payload: MatchUpdatePayload = {
+        matchId: 'game123',
         score: '2-1',
         status: 'First Half',
         currentTime: '15:23',
       };
-      gateway.emitGameUpdate(payload);
-      expect(mockEmit).toHaveBeenCalledWith('game:update', payload);
+      gateway.emitMatchUpdate(payload);
+      expect(mockEmit).toHaveBeenCalledWith('Match:update', payload);
     });
   });
 
@@ -149,18 +149,6 @@ describe('AppGateway', () => {
       };
       gateway.emitPollUpdate(payload);
       expect(mockEmit).toHaveBeenCalledWith('poll:update', payload);
-    });
-  });
-
-  describe('emitChallengeUpdate', () => {
-    it('should emit the challenge update event', () => {
-      const payload: ChallengeUpdatePayload = {
-        challengeId: 'challenge789',
-        status: 'in_progress',
-        title: 'Desafio Incrível',
-      };
-      gateway.emitChallengeUpdate(payload);
-      expect(mockEmit).toHaveBeenCalledWith('challenge:update', payload);
     });
   });
 });

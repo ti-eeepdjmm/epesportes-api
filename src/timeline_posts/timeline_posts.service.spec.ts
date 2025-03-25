@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Test, TestingModule } from '@nestjs/testing';
 import { TimelinePostsService } from './timeline_posts.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { mockTimelinePost } from '../../test/mocks';
+import { AppGateway } from '../app-gateway/app/app.gateway';
 
 class TimelinePostModelFake {
   constructor(private data: any) {
@@ -40,6 +43,18 @@ describe('TimelinePostsService', () => {
         {
           provide: getModelToken('TimelinePost'),
           useValue: TimelinePostModelFake,
+        },
+        AppGateway,
+        {
+          provide: AppGateway,
+          useValue: {
+            server: {
+              emit: jest.fn(), // simula a função emit do WebSocket
+            },
+            emitNewPost: jest.fn(function (this: any, payload) {
+              this.server.emit('feed:new-post', payload);
+            }),
+          },
         },
       ],
     }).compile();

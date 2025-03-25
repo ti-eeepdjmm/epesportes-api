@@ -7,14 +7,15 @@ export interface NewPostPayload {
 
 // Tipagem para payload de notificação
 export interface NotificationPayload {
-  type: 'like' | 'comment' | 'mention' | 'follow';
+  type: 'reaction' | 'comment' | 'mention' | 'follow';
   message: string;
   link: string;
+  timestamp: number;
 }
 
 // Tipagem para payload de atualização de jogo
-export interface GameUpdatePayload {
-  gameId: string;
+export interface MatchUpdatePayload {
+  matchId: string;
   score: string;
   status: 'First Half' | 'Second Half' | 'Finished';
   currentTime: string;
@@ -28,11 +29,4 @@ export interface PollUpdatePayload {
     text: string;
     votes: number;
   }[];
-}
-
-// Tipagem para payload de atualização de desafio
-export interface ChallengeUpdatePayload {
-  challengeId: string;
-  status: 'open' | 'in_progress' | 'finished';
-  title: string;
 }
