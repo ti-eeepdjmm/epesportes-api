@@ -21,22 +21,29 @@ export interface NotificationPayload {
 
 // Tipagem para payload de atualização de enquete
 export interface PollUpdatePayload {
-  pollId: string;
+  pollId: number;
   title: string;
   options: {
-    id: string;
-    text: string;
+    id: number;
+    option: string;
     votes: number;
   }[];
   totalVotes: number;
+  expiration: Date;
+  date: Date;
 }
 
 export interface GlobalNotificationPayload {
-  type: 'match_update' | 'event' | 'broadcast';
+  type: 'match_update' | 'event' | 'broadcast' | 'poll' | 'post';
   title: string;
   message: string;
   link: string;
   timestamp: number;
+  sender?: {
+    id: number;
+    name: string;
+    avatar: string;
+  };
 }
 
 export interface MatchUpdatePayload {

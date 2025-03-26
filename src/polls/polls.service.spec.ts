@@ -1,11 +1,14 @@
+/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { PollsService } from './polls.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { AppGateway } from '../app-gateway/app/app.gateway';
 
 const mockPoll = {
   _id: '123',
-  userId: 'user1',
+  userId: 1,
   question: 'What is your favorite color?',
   options: [
     { option: 'Red', votes: 10 },
@@ -39,9 +42,21 @@ class PollModelFake {
     return { exec: jest.fn().mockResolvedValue(mockPoll) };
   }
 }
+const notificationsService = {
+  create: jest.fn(),
+} as unknown as NotificationsService;
 
 describe('PollsService', () => {
   let service: PollsService;
+  let appGateway: {
+    emitPollUpdate: jest.Mock;
+    emitGlobalNotification: jest.Mock;
+  };
+
+  appGateway = {
+    emitPollUpdate: jest.fn(),
+    emitGlobalNotification: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -51,6 +66,8 @@ describe('PollsService', () => {
           provide: getModelToken('Poll'),
           useValue: PollModelFake,
         },
+        { provide: NotificationsService, useValue: notificationsService },
+        { provide: AppGateway, useValue: appGateway },
       ],
     }).compile();
 
@@ -59,7 +76,7 @@ describe('PollsService', () => {
 
   it('should create a poll', async () => {
     const dto = {
-      userId: 'user123',
+      userId: 1,
       question: 'What is your favorite color?',
       options: [{ option: 'Red' }, { option: 'Blue' }],
       expiration: new Date(),

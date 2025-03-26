@@ -1,8 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type PollDocument = Poll & Document;
-
 class PollOption {
   @Prop({ required: true })
   option: string;
@@ -14,7 +12,7 @@ class PollOption {
 @Schema({ toJSON: { virtuals: true }, toObject: { virtuals: true } })
 export class Poll {
   @Prop({ required: true })
-  userId: string;
+  userId: number;
 
   @Prop({ required: true })
   question: string;
@@ -25,6 +23,8 @@ export class Poll {
   @Prop({ type: Date, required: true })
   expiration: Date;
 }
+
+export type PollDocument = Poll & Document & { totalVotes: number };
 
 export const PollSchema = SchemaFactory.createForClass(Poll);
 

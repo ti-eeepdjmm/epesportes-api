@@ -4,14 +4,46 @@ import { Model } from 'mongoose';
 import { Poll, PollDocument } from './schemas/poll.schema';
 import { CreatePollDto } from './dto/create-poll.dto';
 import { UpdatePollDto } from './dto/update-poll.dto';
+import { AppGateway } from '../app-gateway/app/app.gateway';
+import { NotificationsService } from '../notifications/notifications.service';
+import { CreateNotificationDto } from '../notifications/dto/create-notification.dto';
+import { NotificationType } from '../notifications/schemas/notification.entity';
+import {
+  GlobalNotificationPayload,
+  PollUpdatePayload,
+} from '../common/types/socket-events.types';
 
 @Injectable()
 export class PollsService {
-  constructor(@InjectModel(Poll.name) private pollModel: Model<PollDocument>) {}
+  constructor(
+    @InjectModel(Poll.name) private pollModel: Model<PollDocument>,
+    private readonly appGateway: AppGateway,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   async create(createPollDto: CreatePollDto): Promise<PollDocument> {
-    const createdPoll = new this.pollModel(createPollDto);
-    return createdPoll.save();
+    const newPoll = new this.pollModel(createPollDto);
+    const createdPoll = await newPoll.save();
+    // create and save the notification
+    const newNotification: CreateNotificationDto = {
+      type: NotificationType.POLL,
+      message: `Nova enquete criada`,
+      date: new Date(),
+      link: `polls/${createdPoll.id}`,
+      isGlobal: true,
+    };
+    await this.notificationsService.create(newNotification);
+    // Emit the notifications to frontend
+    const payload: GlobalNotificationPayload = {
+      message: 'Nova Enquete Criada',
+      title: createdPoll.question,
+      link: `polls/${createdPoll.id}`,
+      timestamp: Date.now(),
+      type: 'poll',
+    };
+    this.appGateway.emitGlobalNotification(payload);
+    // return the created poll
+    return createdPoll;
   }
 
   async findAll(): Promise<PollDocument[]> {
@@ -36,6 +68,42 @@ export class PollsService {
     if (!updatedPoll) {
       throw new NotFoundException(`Poll with id ${id} not found`);
     }
+    // test if poll has expired!
+    if (updatedPoll.expiration.getTime() < Date.now()) {
+      const newNotification: CreateNotificationDto = {
+        type: NotificationType.POLL,
+        message: `Enquete Finalizada!`,
+        date: new Date(),
+        link: `polls/${updatedPoll.id}`,
+        isGlobal: true,
+      };
+      await this.notificationsService.create(newNotification);
+
+      const payload: GlobalNotificationPayload = {
+        message: 'Enquete Finalizada!',
+        title: updatedPoll.question,
+        link: `polls/${updatedPoll.id}`,
+        timestamp: Date.now(),
+        type: 'poll',
+      };
+      this.appGateway.emitGlobalNotification(payload);
+    } else {
+      const mappedOptions = updatedPoll.options.map((option, index) => ({
+        id: index, // ou se já houver um id, use option.id
+        option: option.option, // ou apenas option se o item for uma string
+        votes: option.votes,
+      }));
+      const payload: PollUpdatePayload = {
+        pollId: updatedPoll.id as number,
+        title: updatedPoll.question,
+        options: mappedOptions,
+        totalVotes: updatedPoll.totalVotes,
+        expiration: updatedPoll.expiration,
+        date: new Date(),
+      };
+      this.appGateway.emitPollUpdate(payload);
+    }
+
     return updatedPoll;
   }
 
