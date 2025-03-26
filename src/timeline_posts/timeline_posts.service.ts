@@ -8,7 +8,10 @@ import { AppGateway } from '../app-gateway/app/app.gateway';
 import { User } from '../users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NewPostPayload } from 'src/common/types/socket-events.types';
+import { NewPostPayload } from '../common/types/socket-events.types';
+import { NotificationsService } from '../notifications/notifications.service';
+import { CreateNotificationDto } from '../notifications/dto/create-notification.dto';
+import { NotificationType } from '../notifications/schemas/notification.entity';
 
 @Injectable()
 export class TimelinePostsService {
@@ -18,6 +21,7 @@ export class TimelinePostsService {
     @InjectRepository(User)
     private userRepository: Repository<User>, // ✅ correto para TypeORM// <-- corrigido
     private readonly appGateway: AppGateway,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(createPostDto: CreateTimelinePostDto): Promise<TimelinePost> {
@@ -27,6 +31,14 @@ export class TimelinePostsService {
       postId: (newPost._id as string).toString(),
       timestamp: Date.now(),
     };
+    const newNotification: CreateNotificationDto = {
+      type: NotificationType.POST,
+      message: 'Novo post',
+      date: new Date(),
+      link: `timeline-posts/${(newPost._id as string).toString()}`,
+      isGlobal: true,
+    };
+    await this.notificationsService.create(newNotification);
     this.appGateway.emitNewPost(payload);
     return newPost.save();
   }
@@ -73,6 +85,16 @@ export class TimelinePostsService {
         });
 
         if (user) {
+          const newNotification: CreateNotificationDto = {
+            recipientId: postBefore.userId,
+            senderId: newComment.userId,
+            type: NotificationType.COMMENT,
+            message: `${user.name} comentou no seu post`,
+            date: new Date(),
+            link: `timeline-posts/${id}`,
+          };
+          await this.notificationsService.create(newNotification);
+
           this.appGateway.emitNotification(postBefore.userId, {
             type: 'comment',
             message: `${user.name} comentou no seu post`,
@@ -109,6 +131,16 @@ export class TimelinePostsService {
           });
 
           if (user) {
+            const newNotification: CreateNotificationDto = {
+              recipientId: postBefore.userId,
+              senderId: userId,
+              type: NotificationType.REACTION,
+              message: `${user.name} reagiu ao seu post!`,
+              date: new Date(),
+              link: `timeline-posts/${id}`,
+            };
+            await this.notificationsService.create(newNotification);
+
             this.appGateway.emitNotification(postBefore.userId, {
               type: 'reaction',
               message: `${user.name} reagiu ao seu post!`,

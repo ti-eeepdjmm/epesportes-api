@@ -4,13 +4,19 @@ import {
   IsString,
   IsOptional,
   IsBoolean,
+  IsNumber,
+  IsDate,
 } from 'class-validator';
 import { NotificationType } from '../schemas/notification.entity';
 
 export class CreateNotificationDto {
   @IsNotEmpty()
-  @IsString()
-  user_id: string;
+  @IsNumber()
+  recipientId?: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  senderId?: number;
 
   @IsNotEmpty()
   @IsEnum(NotificationType)
@@ -18,9 +24,21 @@ export class CreateNotificationDto {
 
   @IsNotEmpty()
   @IsString()
-  reference: string;
+  message: string;
+
+  @IsNotEmpty()
+  @IsString()
+  link: string;
+
+  @IsNotEmpty()
+  @IsDate()
+  date: Date;
 
   @IsOptional()
   @IsBoolean()
   read?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isGlobal?: boolean;
 }

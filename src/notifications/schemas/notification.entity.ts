@@ -6,25 +6,36 @@ export type NotificationDocument = Notification & Document;
 export enum NotificationType {
   REACTION = 'reaction',
   COMMENT = 'comment',
-  GAME = 'game',
+  MATCH = 'match',
   POLL = 'poll',
+  POST = 'post',
 }
 
-@Schema({ timestamps: { createdAt: 'date', updatedAt: false } })
+@Schema({ timestamps: { createdAt: false, updatedAt: false } })
 export class Notification {
-  // O campo _id é gerado automaticamente pelo Mongoose (pode ser considerado como uuid)
-  @Prop({ required: true })
-  user_id: string;
+  @Prop({ required: false })
+  recipientId: number;
+
+  @Prop({ required: false })
+  senderId: number;
 
   @Prop({ required: true, enum: NotificationType })
   type: NotificationType;
 
   @Prop({ required: true })
-  reference: string;
+  message: string;
 
-  // 'date' será definido automaticamente como o timestamp de criação
+  @Prop({ required: true })
+  link: string;
+
+  @Prop({ required: true })
+  date: Date;
+
   @Prop({ default: false })
   read: boolean;
+
+  @Prop({ default: false })
+  isGlobal: boolean;
 }
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);
