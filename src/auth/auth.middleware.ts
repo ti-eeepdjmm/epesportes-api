@@ -22,7 +22,7 @@ export class AuthMiddleware implements NestMiddleware {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return next(new UnauthorizedException('Token não fornecido'));
+        return next(); // deixa passar, o guard vai cuidar
       }
 
       const token = authHeader.replace('Bearer ', '');

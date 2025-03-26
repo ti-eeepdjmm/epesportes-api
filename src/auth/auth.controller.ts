@@ -13,11 +13,12 @@ import { LoginDto } from './dto/login.dto';
 import { User } from '@supabase/supabase-js';
 import { RecoverPasswordDto } from './dto/recover-password.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { Public } from './decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
+  @Public()
   @Post('register')
   async register(@Body() registerDto: RegisterDto): Promise<unknown> {
     try {
@@ -29,7 +30,7 @@ export class AuthController {
       throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
     }
   }
-
+  @Public()
   @Post('login')
   async login(@Body() loginDto: LoginDto): Promise<unknown> {
     try {
@@ -57,7 +58,7 @@ export class AuthController {
       throw new HttpException(errorMessage, HttpStatus.UNAUTHORIZED);
     }
   }
-
+  @Public()
   @Get('login/google')
   async loginGoogle(): Promise<{ url: string }> {
     try {

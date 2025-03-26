@@ -6,6 +6,11 @@ import { CreateMatchDto } from './dto/create-match.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
 import { Game } from '../games/entities/game.entity';
 import { Team } from '../teams/entities/team.entity';
+import { AppGateway } from '../app-gateway/app/app.gateway';
+import { MatchUpdatePayload } from '../common/types/socket-events.types';
+import { CreateNotificationDto } from '../notifications/dto/create-notification.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/schemas/notification.entity';
 
 @Injectable()
 export class MatchesService {
@@ -16,8 +21,74 @@ export class MatchesService {
     private readonly gameRepository: Repository<Game>,
     @InjectRepository(Team)
     private readonly teamRepository: Repository<Team>,
+    private readonly appGateway: AppGateway,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
+  private async emitMatchUpdateEvents(before: Match, after: Match) {
+    // aqui você compara e emite os eventos
+    if (
+      (before.score_team1 !== after.score_team1 ||
+        before.score_team2 !== after.score_team2) &&
+      (before.status !== 'completed' || after.status !== 'completed')
+    ) {
+      const newNotification: CreateNotificationDto = {
+        type: NotificationType.GOAL,
+        message: `${after.team1.name} ${after.score_team1} x ${after.score_team2} ${after.team2.name}`,
+        date: new Date(),
+        link: `matchs/${before.id}`,
+        isGlobal: true,
+        senderId: before.id,
+      };
+      await this.notificationsService.create(newNotification);
+
+      this.appGateway.emitMatchUpdate({
+        matchId: before.id,
+        type: 'goal',
+        title: 'GOL!',
+        message: `${after.team1.name} ${after.score_team1} x ${after.score_team2} ${after.team2.name}`,
+        teams: {
+          team1: {
+            name: after.team1.name,
+            logoUrl: after.team1.logo,
+            score: after.score_team1,
+          },
+          team2: {
+            name: after.team2.name,
+            logoUrl: after.team2.logo,
+            score: after.score_team2,
+          },
+        },
+        timestamp: Date.now(),
+      });
+    }
+
+    if (before.status !== 'completed' && after.status === 'completed') {
+      const newNotification: CreateNotificationDto = {
+        type: NotificationType.MATCH,
+        message: `${after.team1.name} ${after.score_team1} x ${after.score_team2} ${after.team2.name}`,
+        date: new Date(),
+        link: `matchs/${before.id}`,
+        isGlobal: true,
+        senderId: before.id,
+      };
+      await this.notificationsService.create(newNotification);
+
+      this.appGateway.emitMatchUpdate({
+        matchId: before.id,
+        type: 'completed',
+        title: 'Fim de jogo!',
+        message: `${after.team1.name} ${after.score_team1} x ${after.score_team2} ${after.team2.name}`,
+        teams: {
+          team1: { name: after.team1.name, score: after.score_team1 },
+          team2: { name: after.team2.name, score: after.score_team2 },
+        },
+        timestamp: Date.now(),
+      });
+    }
+  }
+
+  // funcoes REST
   async create(createMatchDto: CreateMatchDto): Promise<Match> {
     const {
       gameId,
@@ -47,7 +118,31 @@ export class MatchesService {
       status,
       dateTime,
     });
-    return this.matchRepository.save(match);
+
+    const newMatch = await this.matchRepository.save(match);
+
+    const newNotification: CreateNotificationDto = {
+      type: NotificationType.MATCH,
+      message: `${team1.name} x ${team2.name}`,
+      date: new Date(),
+      link: `matchs/${newMatch.id}`,
+      isGlobal: true,
+    };
+    await this.notificationsService.create(newNotification);
+
+    const payload: MatchUpdatePayload = {
+      matchId: newMatch.id,
+      type: 'scheduled',
+      title: 'Partida marcada!',
+      message: `${team1.name} x ${team2.name}`,
+      teams: {
+        team1: { name: team1.name, logoUrl: team1.logo, score: score_team1 },
+        team2: { name: team2.name, logoUrl: team2.logo, score: score_team2 },
+      },
+      timestamp: Date.now(),
+    };
+    this.appGateway.emitMatchUpdate(payload);
+    return newMatch;
   }
 
   async findAll(): Promise<Match[]> {
@@ -64,9 +159,10 @@ export class MatchesService {
   }
 
   async update(id: number, updateMatchDto: UpdateMatchDto): Promise<Match> {
-    const match = await this.findOne(id);
-    Object.assign(match, updateMatchDto);
-    return this.matchRepository.save(match);
+    const matchBefore = await this.findOne(id);
+    const matchAfter = { ...matchBefore, ...updateMatchDto };
+    await this.emitMatchUpdateEvents(matchBefore, matchAfter);
+    return this.matchRepository.save(matchAfter);
   }
 
   async remove(id: number): Promise<void> {

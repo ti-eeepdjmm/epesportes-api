@@ -2,7 +2,8 @@ import { TimelinePostsController } from './timeline_posts.controller';
 import { TimelinePostsService } from './timeline_posts.service';
 import { CreateTimelinePostDto } from './dto/create-timeline_post.dto';
 import { UpdateTimelinePostDto } from './dto/update-timeline_post.dto';
-import { mockTimelinePost, mockTimelinePosts } from '../../test/mocks';
+import { createMockTimelinePosts, mockTimelinePost } from '../../test/mocks';
+import { TimelinePost } from './schemas/timeline_post.schema';
 
 // Mock do schema para evitar que o construtor real (que estende Document) seja executado
 jest.mock('./schemas/timeline_post.schema', () => {
@@ -14,17 +15,18 @@ jest.mock('./schemas/timeline_post.schema', () => {
   return { TimelinePost: TimelinePostMock };
 });
 
-import { TimelinePost } from './schemas/timeline_post.schema';
-
 describe('TimelinePostsController', () => {
   let controller: TimelinePostsController;
   let service: TimelinePostsService;
+
   const mockService = {
     findAll: jest.fn(),
     findOne: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
+    addReaction: jest.fn(),
+    addComment: jest.fn(),
   };
 
   beforeEach(() => {
@@ -37,7 +39,7 @@ describe('TimelinePostsController', () => {
   });
 
   it('should return all timeline posts', async () => {
-    const timelinePosts = mockTimelinePosts.map(
+    const timelinePosts = createMockTimelinePosts().map(
       (post) => new TimelinePost(post),
     );
     jest.spyOn(service, 'findAll').mockResolvedValue(timelinePosts);
@@ -55,7 +57,7 @@ describe('TimelinePostsController', () => {
 
   it('should create a new post', async () => {
     const dto: CreateTimelinePostDto = {
-      userId: 'user123',
+      userId: 2,
       content: 'Test post',
     };
     const timelinePostInstance = new TimelinePost(mockTimelinePost);

@@ -13,9 +13,9 @@ import { Server, Socket } from 'socket.io';
 import {
   NewPostPayload,
   NotificationPayload,
-  GameUpdatePayload,
+  MatchUpdatePayload,
   PollUpdatePayload,
-  ChallengeUpdatePayload,
+  GlobalNotificationPayload,
 } from 'src/common/types/socket-events.types';
 
 @WebSocketGateway({
@@ -66,16 +66,19 @@ export class AppGateway
   // Emite uma notificação de nova postagem para todos os clientes conectados
   emitNewPost(payload: NewPostPayload): void {
     this.server.emit('feed:new-post', payload);
+    this.logger.log('feed:new-post', payload);
   }
 
   // Emite uma notificação privada para um usuário específico
-  emitNotification(userId: string, payload: NotificationPayload): void {
-    this.server.to(`user-${userId}`).emit('user:notification', payload);
+  emitNotification(userId: number, payload: NotificationPayload): void {
+    this.server.to(`user-${userId}`).emit(`feed:new-${payload.type}`, payload);
+    this.logger.log(`feed:new-${payload.type}`, payload);
   }
 
   // Emite atualização de jogo em tempo real para todos os usuários
-  emitGameUpdate(payload: GameUpdatePayload): void {
-    this.server.emit('game:update', payload);
+  emitMatchUpdate(payload: MatchUpdatePayload): void {
+    this.server.emit('Match:update', payload);
+    this.logger.log('Match:update', payload);
   }
 
   // Emite atualização de enquete para todos os usuários
@@ -83,8 +86,8 @@ export class AppGateway
     this.server.emit('poll:update', payload);
   }
 
-  // Emite atualização de desafio para todos os usuários
-  emitChallengeUpdate(payload: ChallengeUpdatePayload): void {
-    this.server.emit('challenge:update', payload);
+  // Emite atualização de enquete para todos os usuários
+  emitGlobalNotification(payload: GlobalNotificationPayload): void {
+    this.server.emit('global:notification', payload);
   }
 }

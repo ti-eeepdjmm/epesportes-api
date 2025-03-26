@@ -14,11 +14,14 @@ import { UpdateNotificationDto } from './dto/update-notification.dto';
 
 const mockNotification: NotificationDocument = {
   _id: '123',
-  user_id: 'user1',
-  type: NotificationType.GAME,
-  reference: '456',
+  recipientId: 2,
+  senderId: 1,
+  type: NotificationType.MATCH,
+  link: 'timeline-posts/23',
+  message: 'novo post',
   date: new Date(),
   read: false,
+  isGlobal: false,
 } as unknown as NotificationDocument;
 
 class NotificationModelFake {
@@ -73,10 +76,14 @@ describe('NotificationsService', () => {
   describe('create', () => {
     it('should create a notification', async () => {
       const dto: CreateNotificationDto = {
-        user_id: 'user1',
-        type: NotificationType.GAME,
-        reference: '456',
+        recipientId: 2,
+        senderId: 1,
+        type: NotificationType.MATCH,
+        link: 'timeline-posts/23',
+        message: 'novo post',
+        date: new Date(),
         read: false,
+        isGlobal: false,
       };
       const result = await service.create(dto);
       expect(result).toEqual(mockNotification);

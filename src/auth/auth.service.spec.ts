@@ -51,7 +51,11 @@ describe('AuthService', () => {
   });
 
   it('should register a user and return user and session', async () => {
-    const dto = { email: 'teste@example.com', password: '123456' };
+    const dto = {
+      full_name: 'User Tester',
+      email: 'teste@example.com',
+      password: '123456',
+    };
     const result = await service.register(dto);
 
     expect(result.user!.email).toBe('teste@example.com');

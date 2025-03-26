@@ -5,21 +5,21 @@ import { IsString, IsArray, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class ReactionsDto {
-  @IsArray() @IsOptional() liked?: string[];
-  @IsArray() @IsOptional() beast?: string[];
-  @IsArray() @IsOptional() plays_great?: string[];
-  @IsArray() @IsOptional() amazing_goal?: string[];
-  @IsArray() @IsOptional() stylish?: string[];
+  @IsArray() @IsOptional() liked?: number[];
+  @IsArray() @IsOptional() beast?: number[];
+  @IsArray() @IsOptional() plays_great?: number[];
+  @IsArray() @IsOptional() amazing_goal?: number[];
+  @IsArray() @IsOptional() stylish?: number[];
 }
 
 class CommentDto {
-  @IsString() userId: string;
+  @IsString() userId: number;
   @IsString() content: string;
   @IsOptional() @Type(() => Date) commentDate?: Date;
 }
 
 export class CreateTimelinePostDto {
-  @IsString() userId: string;
+  @IsString() userId: number;
   @IsString() content: string;
   @IsArray() @IsOptional() media?: string[];
   @ValidateNested()

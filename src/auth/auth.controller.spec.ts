@@ -49,7 +49,11 @@ describe('AuthController', () => {
   });
 
   it('should register a user', async () => {
-    const registerDto = { email: 'teste@example.com', password: '123456' };
+    const registerDto = {
+      full_name: 'User Test',
+      email: 'teste@example.com',
+      password: '123456',
+    };
     const result = (await controller.register(registerDto)) as {
       session: { access_token: string };
     };
