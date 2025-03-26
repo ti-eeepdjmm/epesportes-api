@@ -9,6 +9,7 @@ import {
 import { AppGatewayModule } from '../app-gateway/app-gateway.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { User } from '../users/entities/user.entity';
     ]),
     TypeOrmModule.forFeature([User]), // ✅ registra o repositório do PostgreSQL
     AppGatewayModule,
+    NotificationsModule,
   ],
   controllers: [TimelinePostsController],
   providers: [TimelinePostsService],

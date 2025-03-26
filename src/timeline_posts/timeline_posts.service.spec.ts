@@ -14,6 +14,7 @@ import { CreateTimelinePostDto } from './dto/create-timeline_post.dto';
 import { UpdateTimelinePostDto } from './dto/update-timeline_post.dto';
 import { NotFoundException } from '@nestjs/common';
 import { Team } from '../teams/entities/team.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const mockTeam: Team = {
   id: 1,
@@ -34,6 +35,10 @@ const mockUser: User = {
   birthDate: new Date('2002-06-15'),
   createdAt: new Date('2025-03-25T10:30:00Z'),
 };
+
+const notificationsService = {
+  create: jest.fn(),
+} as unknown as NotificationsService;
 
 describe('TimelinePostsService', () => {
   let service: TimelinePostsService;
@@ -82,6 +87,7 @@ describe('TimelinePostsService', () => {
         },
         { provide: getRepositoryToken(User), useValue: userRepository },
         { provide: AppGateway, useValue: appGateway as unknown as AppGateway },
+        { provide: NotificationsService, useValue: notificationsService },
       ],
     }).compile();
 
@@ -116,6 +122,7 @@ describe('TimelinePostsService', () => {
         mockModel,
         userRepository,
         appGateway,
+        notificationsService, // ← novo argumento
       );
 
       const result = await customService.create(dto);
