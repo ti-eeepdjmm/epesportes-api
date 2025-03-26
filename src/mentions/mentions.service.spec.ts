@@ -8,6 +8,7 @@ import { User } from '../users/entities/user.entity';
 import { Player } from '../players/entities/player.entity';
 import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { CreateMentionDto } from './dto/create-mention.dto';
 
 describe('MentionsService', () => {
   let service: MentionsService;
@@ -67,11 +68,12 @@ describe('MentionsService', () => {
   describe('create', () => {
     it('should throw NotFoundException if mentioned user is not found', async () => {
       mockUserRepository.findOneBy.mockResolvedValue(null);
-      const dto = {
-        postId: 1,
+      const dto: CreateMentionDto = {
+        postId: '231',
         commentId: 2,
         mentionedUserId: 10,
-        mentionedPlayerId: null,
+        senderUserId: 2,
+        mentionedPlayerId: 10,
       };
       await expect(service.create(dto as any)).rejects.toThrow(
         NotFoundException,

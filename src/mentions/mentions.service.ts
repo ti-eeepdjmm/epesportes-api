@@ -6,6 +6,10 @@ import { CreateMentionDto } from './dto/create-mention.dto';
 import { UpdateMentionDto } from './dto/update-mention.dto';
 import { User } from '../users/entities/user.entity';
 import { Player } from '../players/entities/player.entity';
+import { AppGateway } from '../app-gateway/app/app.gateway';
+import { NotificationsService } from '../notifications/notifications.service';
+import { CreateNotificationDto } from '../notifications/dto/create-notification.dto';
+import { NotificationType } from '../notifications/schemas/notification.entity';
 
 @Injectable()
 export class MentionsService {
@@ -16,11 +20,20 @@ export class MentionsService {
     private userRepo: Repository<User>,
     @InjectRepository(Player)
     private playerRepo: Repository<Player>,
+    private readonly appGateway: AppGateway,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(dto: CreateMentionDto): Promise<Mention> {
-    const user = await this.userRepo.findOneBy({ id: dto.mentionedUserId });
-    if (!user) throw new NotFoundException('Mentioned user not found');
+    const mencionedUser = await this.userRepo.findOneBy({
+      id: dto.mentionedUserId,
+    });
+    const senderUser = await this.userRepo.findOneBy({
+      id: dto.senderUserId,
+    });
+    if (!mencionedUser)
+      throw new NotFoundException('Mentioned user not found!');
+    if (!senderUser) throw new NotFoundException('Sender user not found!');
 
     const player = dto.mentionedPlayerId
       ? await this.playerRepo.findOneBy({ id: dto.mentionedPlayerId })
@@ -29,9 +42,20 @@ export class MentionsService {
     const mention = this.mentionRepo.create({
       postId: dto.postId,
       commentId: dto.commentId,
-      mentionedUser: user,
-      ...(player && { mentionedPlayer: player }), // só inclui se player for diferente de null
+      mentionedUser: mencionedUser,
+      ...(player && { mentionedPlayer: player }),
+      senderUser: senderUser, // só inclui se player for diferente de null
     });
+    // create and save the notification
+    const newNotification: CreateNotificationDto = {
+      type: NotificationType.MENTION,
+      message: `Você foi marcado!`,
+      date: new Date(),
+      link: `posts/${mention.postId}`,
+      senderId: mention.senderUser,
+
+    };
+    await this.notificationsService.create(newNotification);
     return this.mentionRepo.save(mention);
   }
 

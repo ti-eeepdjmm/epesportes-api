@@ -18,10 +18,13 @@ export class Mention {
   postId: string;
 
   @Column({ nullable: true })
-  commentId: string;
+  commentId: number;
 
   @ManyToOne(() => User, { nullable: false })
   mentionedUser: User;
+
+  @ManyToOne(() => User, { nullable: false })
+  senderUser: User;
 
   @ManyToOne(() => Player, { nullable: true })
   mentionedPlayer: Player | null;
