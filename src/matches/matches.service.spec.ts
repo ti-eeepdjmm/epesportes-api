@@ -9,6 +9,11 @@ import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+
+const notificationsService = {
+  create: jest.fn(),
+} as unknown as NotificationsService;
 
 describe('MatchesService', () => {
   let service: MatchesService;
@@ -46,6 +51,7 @@ describe('MatchesService', () => {
         { provide: getRepositoryToken(Game), useValue: gameRepository },
         { provide: getRepositoryToken(Team), useValue: teamRepository },
         { provide: AppGateway, useValue: appGateway },
+        { provide: NotificationsService, useValue: notificationsService },
       ],
     }).compile();
 
