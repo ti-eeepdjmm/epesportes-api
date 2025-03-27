@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Test, TestingModule } from '@nestjs/testing';
@@ -8,6 +11,11 @@ import { User } from '../users/entities/user.entity';
 import { Player } from '../players/entities/player.entity';
 import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { CreateMentionDto } from './dto/create-mention.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { AppGateway } from '../app-gateway/app/app.gateway';
+import { UpdateMentionDto } from './dto/update-mention.dto';
+import { NotificationType } from '../notifications/schemas/notification.entity';
 
 describe('MentionsService', () => {
   let service: MentionsService;
@@ -21,6 +29,8 @@ describe('MentionsService', () => {
     find: jest.fn(),
     findOne: jest.fn(),
     remove: jest.fn(),
+    findUserOrFail: jest.fn(),
+    findPlayerIfExists: jest.fn(),
   };
 
   const mockUserRepository = {
@@ -29,6 +39,14 @@ describe('MentionsService', () => {
 
   const mockPlayerRepository = {
     findOneBy: jest.fn(),
+  };
+
+  const mockNotificationsService = {
+    create: jest.fn(),
+  };
+
+  const mockAppGateway = {
+    emitNotification: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -46,6 +64,14 @@ describe('MentionsService', () => {
         {
           provide: getRepositoryToken(Player),
           useValue: mockPlayerRepository,
+        },
+        {
+          provide: NotificationsService,
+          useValue: mockNotificationsService,
+        },
+        {
+          provide: AppGateway,
+          useValue: mockAppGateway,
         },
       ],
     }).compile();
@@ -67,11 +93,12 @@ describe('MentionsService', () => {
   describe('create', () => {
     it('should throw NotFoundException if mentioned user is not found', async () => {
       mockUserRepository.findOneBy.mockResolvedValue(null);
-      const dto = {
-        postId: 1,
+      const dto: CreateMentionDto = {
+        postId: '231',
         commentId: 2,
         mentionedUserId: 10,
-        mentionedPlayerId: null,
+        senderUserId: 2,
+        mentionedPlayerId: 10,
       };
       await expect(service.create(dto as any)).rejects.toThrow(
         NotFoundException,
@@ -87,6 +114,7 @@ describe('MentionsService', () => {
         commentId: 2,
         mentionedUser: fakeUser,
         mentionedPlayer: fakePlayer,
+        senderUserId: 2,
       };
 
       mockUserRepository.findOneBy.mockResolvedValue(fakeUser);
@@ -162,109 +190,60 @@ describe('MentionsService', () => {
     });
   });
 
-  describe('update', () => {
-    it('should update basic fields and associations', async () => {
-      const existingMention = {
-        id: 1,
-        postId: 1,
-        commentId: 2,
-        mentionedUser: { id: 1 },
-        mentionedPlayer: { id: 2 },
-      };
-      const updatedMention = {
-        ...existingMention,
-        postId: 10,
-        commentId: 20,
-        mentionedUser: { id: 3, name: 'New User' },
-        mentionedPlayer: { id: 4, name: 'New Player' },
-      };
+  it('should remove mentionedPlayer when mentionedPlayerId is null', async () => {
+    const existingMention = {
+      id: 1,
+      postId: '23424',
+      commentId: 2,
+      mentionedUser: { id: 2 },
+      mentionedPlayer: { id: 2 },
+      senderUser: { id: 1 },
+    };
+    const updatedMention = { ...existingMention, mentionedPlayer: null };
 
-      // findOne retorna a menção existente
-      mockMentionRepository.findOne.mockResolvedValue(existingMention);
-      // Busca o novo usuário e jogador
-      mockUserRepository.findOneBy.mockResolvedValue({
-        id: 3,
-        name: 'New User',
-      });
-      mockPlayerRepository.findOneBy.mockResolvedValue({
-        id: 4,
-        name: 'New Player',
-      });
-      mockMentionRepository.save.mockResolvedValue(updatedMention);
+    mockMentionRepository.findOne.mockResolvedValue(existingMention);
+    // Se o valor for explicitamente null, não é feita a busca de player
+    mockMentionRepository.save.mockResolvedValue(updatedMention);
 
-      const updateDto = {
-        postId: 10,
-        commentId: 20,
-        mentionedUserId: 3,
-        mentionedPlayerId: 4,
-      };
+    const updateDto = { mentionedPlayerId: null };
+    const result = await service.update(1, updateDto as any);
+    expect(result.mentionedPlayer).toBeNull();
+  });
 
-      const result = await service.update(1, updateDto as any);
-      expect(result).toEqual(updatedMention);
-      expect(existingMention.postId).toEqual(10);
-      expect(existingMention.commentId).toEqual(20);
-      expect(existingMention.mentionedUser).toEqual({
-        id: 3,
-        name: 'New User',
-      });
-      expect(existingMention.mentionedPlayer).toEqual({
-        id: 4,
-        name: 'New Player',
-      });
-    });
+  it('should throw NotFoundException if new mentionedUserId is not found', async () => {
+    const existingMention = {
+      id: 1,
+      postId: 1,
+      commentId: 2,
+      mentionedUser: { id: 1 },
+      mentionedPlayer: null,
+      senderUser: 4,
+    };
+    mockMentionRepository.findOne.mockResolvedValue(existingMention);
+    mockUserRepository.findOneBy.mockResolvedValue(null);
 
-    it('should remove mentionedPlayer when mentionedPlayerId is null', async () => {
-      const existingMention = {
-        id: 1,
-        postId: 1,
-        commentId: 2,
-        mentionedUser: { id: 1 },
-        mentionedPlayer: { id: 2 },
-      };
-      const updatedMention = { ...existingMention, mentionedPlayer: null };
+    const updateDto = { mentionedUserId: 99 };
+    await expect(service.update(1, updateDto)).rejects.toThrow(
+      NotFoundException,
+    );
+  });
 
-      mockMentionRepository.findOne.mockResolvedValue(existingMention);
-      // Se o valor for explicitamente null, não é feita a busca de player
-      mockMentionRepository.save.mockResolvedValue(updatedMention);
+  it('should throw NotFoundException if new mentionedPlayerId is not found', async () => {
+    const existingMention = {
+      id: 1,
+      postId: 1,
+      commentId: 2,
+      mentionedUser: { id: 1 },
+      mentionedPlayer: { id: 2 },
+      senderUser: 4,
+    };
+    mockMentionRepository.findOne.mockResolvedValue(existingMention);
+    mockPlayerRepository.findOneBy.mockResolvedValue(null);
 
-      const updateDto = { mentionedPlayerId: null };
-      const result = await service.update(1, updateDto as any);
-      expect(result.mentionedPlayer).toBeNull();
-    });
-
-    it('should throw NotFoundException if new mentionedUserId is not found', async () => {
-      const existingMention = {
-        id: 1,
-        postId: 1,
-        commentId: 2,
-        mentionedUser: { id: 1 },
-        mentionedPlayer: null,
-      };
-      mockMentionRepository.findOne.mockResolvedValue(existingMention);
-      mockUserRepository.findOneBy.mockResolvedValue(null);
-
-      const updateDto = { mentionedUserId: 99 };
-      await expect(service.update(1, updateDto)).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-
-    it('should throw NotFoundException if new mentionedPlayerId is not found', async () => {
-      const existingMention = {
-        id: 1,
-        postId: 1,
-        commentId: 2,
-        mentionedUser: { id: 1 },
-        mentionedPlayer: { id: 2 },
-      };
-      mockMentionRepository.findOne.mockResolvedValue(existingMention);
-      mockPlayerRepository.findOneBy.mockResolvedValue(null);
-
-      const updateDto = { mentionedPlayerId: 99 };
-      await expect(service.update(1, updateDto)).rejects.toThrow(
-        NotFoundException,
-      );
-    });
+    const updateDto = { mentionedPlayerId: 99 };
+    await expect(service.update(1, updateDto)).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   describe('remove', () => {
@@ -275,5 +254,81 @@ describe('MentionsService', () => {
       const result = await service.remove(1);
       expect(result).toEqual(existingMention);
     });
+  });
+
+  it('should update basic fields, emit notification and save changes', async () => {
+    const mockMention = {
+      id: 1,
+      postId: 'old-post',
+      commentId: 20,
+      mentionedUser: { id: 2 },
+      mentionedPlayer: null,
+      senderUser: {
+        id: 3,
+        name: 'João',
+        profilePhoto: 'foto.png',
+      },
+    } as Mention;
+
+    const dto: UpdateMentionDto = {
+      postId: 'updated-post',
+      commentId: 25,
+      mentionedUserId: 2,
+      mentionedPlayerId: 5,
+    };
+
+    const updatedMention = {
+      ...mockMention,
+      postId: dto.postId,
+      commentId: dto.commentId,
+      mentionedPlayer: { id: 5 },
+    } as Mention;
+
+    jest.spyOn(service, 'findOne').mockResolvedValue(mockMention);
+    jest.spyOn(service as any, 'findUserOrFail').mockResolvedValue({ id: 2 });
+    jest
+      .spyOn(service as any, 'findPlayerIfExists')
+      .mockResolvedValue({ id: 5 });
+    mockMentionRepository.save.mockResolvedValue(updatedMention);
+
+    const result = await service.update(1, dto);
+
+    expect(service.findOne).toHaveBeenCalledWith(1);
+    expect((service as any).findUserOrFail).toHaveBeenCalledWith(2);
+    expect((service as any).findPlayerIfExists).toHaveBeenCalledWith(5);
+
+    expect(mockMentionRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        postId: dto.postId,
+        commentId: dto.commentId,
+        mentionedUser: { id: 2 },
+        mentionedPlayer: { id: 5 },
+      }),
+    );
+
+    expect(mockNotificationsService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: NotificationType.MENTION,
+        message: 'Você foi mencionado (atualizado)!',
+        link: `posts/${dto.postId}`,
+        senderId: 3,
+        recipientId: 2,
+      }),
+    );
+
+    expect(mockAppGateway.emitNotification).toHaveBeenCalledWith(
+      2,
+      expect.objectContaining({
+        message: expect.stringContaining('João'),
+        type: 'mention',
+        sender: {
+          id: 3,
+          name: 'João',
+          avatar: 'foto.png',
+        },
+      }),
+    );
+
+    expect(result).toEqual(updatedMention);
   });
 });

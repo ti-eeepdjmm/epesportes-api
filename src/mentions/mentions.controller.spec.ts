@@ -40,9 +40,10 @@ describe('MentionsController', () => {
     it('should call MentionsService.create and return the result', async () => {
       const dto: CreateMentionDto = {
         postId: 'asadsasdas',
-        commentId: 'qweqweqeweq',
+        commentId: 2,
         mentionedUserId: 1,
         mentionedPlayerId: 1,
+        senderUserId: 2,
       };
       const result = { id: 1, ...dto };
       mockMentionsService.create.mockResolvedValue(result);

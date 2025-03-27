@@ -44,7 +44,7 @@ describe('PollsController', () => {
   describe('create', () => {
     it('should create a poll', async () => {
       const createPollDto: CreatePollDto = {
-        userId: 'user1',
+        userId: 2,
         question: 'What is your favorite color?',
         options: [{ option: 'Red' }, { option: 'Blue' }],
         expiration: new Date(),

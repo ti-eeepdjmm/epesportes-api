@@ -11,12 +11,11 @@ class CreatePollOptionDto {
 }
 
 export class CreatePollDto {
-  @IsString() userId: string;
+  @IsString() userId: number;
   @IsString() question: string;
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreatePollOptionDto)
   options: CreatePollOptionDto[];
-
   @IsDateString() expiration: Date;
 }

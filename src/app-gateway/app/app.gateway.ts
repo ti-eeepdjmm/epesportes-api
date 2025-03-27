@@ -84,10 +84,12 @@ export class AppGateway
   // Emite atualização de enquete para todos os usuários
   emitPollUpdate(payload: PollUpdatePayload): void {
     this.server.emit('poll:update', payload);
+    this.logger.log('poll:update', payload);
   }
 
-  // Emite atualização de enquete para todos os usuários
+  // Emite atualização para todos os usuários
   emitGlobalNotification(payload: GlobalNotificationPayload): void {
     this.server.emit('global:notification', payload);
+    this.logger.log('global:notification', payload);
   }
 }

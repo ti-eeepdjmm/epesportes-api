@@ -137,10 +137,12 @@ describe('AppGateway', () => {
   describe('emitPollUpdate', () => {
     it('should emit poll:update event', () => {
       const payload: PollUpdatePayload = {
-        pollId: 'poll1',
+        pollId: 2,
         title: 'Nova enquete',
         options: [],
         totalVotes: 0,
+        expiration: new Date(),
+        date: new Date(),
       };
 
       gateway.emitPollUpdate(payload);
