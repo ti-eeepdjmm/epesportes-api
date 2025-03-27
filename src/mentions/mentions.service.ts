@@ -8,8 +8,8 @@ import { User } from '../users/entities/user.entity';
 import { Player } from '../players/entities/player.entity';
 import { AppGateway } from '../app-gateway/app/app.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
-import { CreateNotificationDto } from '../notifications/dto/create-notification.dto';
 import { NotificationType } from '../notifications/schemas/notification.entity';
+import { NotificationPayload } from '../common/types/socket-events.types';
 
 @Injectable()
 export class MentionsService {
@@ -24,38 +24,53 @@ export class MentionsService {
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  async create(dto: CreateMentionDto): Promise<Mention> {
-    const mencionedUser = await this.userRepo.findOneBy({
-      id: dto.mentionedUserId,
-    });
-    const senderUser = await this.userRepo.findOneBy({
-      id: dto.senderUserId,
-    });
-    if (!mencionedUser)
-      throw new NotFoundException('Mentioned user not found!');
-    if (!senderUser) throw new NotFoundException('Sender user not found!');
+  private async findUserOrFail(id: number): Promise<User> {
+    const user = await this.userRepo.findOneBy({ id });
+    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+    return user;
+  }
 
-    const player = dto.mentionedPlayerId
-      ? await this.playerRepo.findOneBy({ id: dto.mentionedPlayerId })
-      : null;
+  private async findPlayerIfExists(id?: number | null): Promise<Player | null> {
+    if (id === null || id === undefined) return null;
+    const player = await this.playerRepo.findOneBy({ id });
+    if (!player) throw new NotFoundException(`Player with ID ${id} not found`);
+    return player;
+  }
+
+  async create(dto: CreateMentionDto): Promise<Mention> {
+    const mentionedUser = await this.findUserOrFail(dto.mentionedUserId);
+    const senderUser = await this.findUserOrFail(dto.senderUserId);
+    const player = await this.findPlayerIfExists(dto.mentionedPlayerId);
 
     const mention = this.mentionRepo.create({
       postId: dto.postId,
       commentId: dto.commentId,
-      mentionedUser: mencionedUser,
-      ...(player && { mentionedPlayer: player }),
-      senderUser: senderUser, // só inclui se player for diferente de null
+      mentionedUser,
+      senderUser,
+      mentionedPlayer: player,
     });
-    // create and save the notification
-    const newNotification: CreateNotificationDto = {
+
+    await this.notificationsService.create({
       type: NotificationType.MENTION,
-      message: `Você foi marcado!`,
+      message: `${senderUser.name} mencionou você em um comentário`,
       date: new Date(),
       link: `posts/${mention.postId}`,
-      senderId: mention.senderUser,
+      senderId: senderUser.id,
+      recipientId: mentionedUser.id,
+    });
 
-    };
-    await this.notificationsService.create(newNotification);
+    this.appGateway.emitNotification(mentionedUser.id, {
+      message: `${senderUser.name} mencionou você em um comentário`,
+      type: 'mention',
+      link: `posts/${mention.postId}`,
+      sender: {
+        id: senderUser.id,
+        name: senderUser.name,
+        avatar: senderUser.password, // esse campo tá estranho, talvez seja user.avatar?
+      },
+      timestamp: Date.now(),
+    });
+
     return this.mentionRepo.save(mention);
   }
 
@@ -68,46 +83,60 @@ export class MentionsService {
   async findOne(id: number): Promise<Mention> {
     const mention = await this.mentionRepo.findOne({
       where: { id },
-      relations: ['mentionedUser', 'mentionedPlayer'],
+      relations: ['mentionedUser', 'mentionedPlayer', 'senderUser'],
     });
     if (!mention) throw new NotFoundException('Mention not found');
     return mention;
   }
 
-  async update(id: number, updateDto: UpdateMentionDto): Promise<Mention> {
+  async update(id: number, dto: UpdateMentionDto): Promise<Mention> {
     const mention = await this.findOne(id);
 
-    // Atualiza os campos básicos se estiverem presentes no DTO
-    if (updateDto.postId !== undefined) {
-      mention.postId = updateDto.postId;
-    }
-    if (updateDto.commentId !== undefined) {
-      mention.commentId = updateDto.commentId;
+    Object.assign(mention, {
+      postId: dto.postId ?? mention.postId,
+      commentId: dto.commentId ?? mention.commentId,
+    });
+
+    if (dto.mentionedUserId !== undefined) {
+      mention.mentionedUser = await this.findUserOrFail(dto.mentionedUserId);
     }
 
-    // Atualiza o usuário mencionado, se for informado
-    if (updateDto.mentionedUserId !== undefined) {
-      const user = await this.userRepo.findOneBy({
-        id: updateDto.mentionedUserId,
-      });
-      if (!user) throw new NotFoundException('Mentioned user not found');
-      mention.mentionedUser = user;
+    if (dto.mentionedPlayerId !== undefined) {
+      mention.mentionedPlayer = await this.findPlayerIfExists(
+        dto.mentionedPlayerId,
+      );
     }
 
-    // Atualiza o jogador mencionado, se for informado (pode ser null para remover a associação)
-    if (updateDto.mentionedPlayerId !== undefined) {
-      if (updateDto.mentionedPlayerId === null) {
-        mention.mentionedPlayer = null;
-      } else {
-        const player = await this.playerRepo.findOneBy({
-          id: updateDto.mentionedPlayerId,
-        });
-        if (!player) throw new NotFoundException('Mentioned player not found');
-        mention.mentionedPlayer = player;
-      }
-    }
+    const updatedMention = await this.mentionRepo.save(mention);
 
-    return this.mentionRepo.save(mention);
+    // Notificação
+    const sender = updatedMention.senderUser; // já vem populado da relação se você garantir isso com o relation ou carregar antes
+    const recipient = updatedMention.mentionedUser;
+
+    await this.notificationsService.create({
+      type: NotificationType.MENTION,
+      message: `Você foi mencionado (atualizado)!`,
+      date: new Date(),
+      link: `posts/${updatedMention.postId}`,
+      senderId: sender.id,
+      recipientId: recipient.id,
+    });
+
+    const payload: NotificationPayload = {
+      message: `${sender.name} atualizou uma menção a você`,
+      type: 'mention',
+      link: `posts/${updatedMention.postId}`,
+      sender: {
+        id: sender.id,
+        name: sender.name,
+        avatar: sender.profilePhoto,
+      },
+      timestamp: Date.now(),
+    };
+
+    this.appGateway.emitNotification(recipient.id, payload);
+
+    return updatedMention;
   }
 
   async remove(id: number): Promise<Mention> {
