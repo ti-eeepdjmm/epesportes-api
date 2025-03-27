@@ -1,10 +1,10 @@
-// entities/mention.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,
   ManyToOne,
   Column,
   CreateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Player } from '../../players/entities/player.entity';
@@ -18,12 +18,18 @@ export class Mention {
   postId: string;
 
   @Column({ nullable: true })
-  commentId: string;
+  commentId: number;
 
   @ManyToOne(() => User, { nullable: false })
+  @JoinColumn({ name: 'mentionedUserId' })
   mentionedUser: User;
 
+  @ManyToOne(() => User, { nullable: false })
+  @JoinColumn({ name: 'senderUserId' })
+  senderUser: User;
+
   @ManyToOne(() => Player, { nullable: true })
+  @JoinColumn({ name: 'mentionedPlayerId' })
   mentionedPlayer: Player | null;
 
   @CreateDateColumn()

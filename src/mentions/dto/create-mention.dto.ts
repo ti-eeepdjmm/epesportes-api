@@ -7,11 +7,14 @@ export class CreateMentionDto {
   postId?: string;
 
   @IsOptional()
-  @IsString()
-  commentId?: string;
+  @IsNumber()
+  commentId?: number;
 
   @IsNumber()
   mentionedUserId: number;
+
+  @IsNumber()
+  senderUserId: number;
 
   @IsOptional()
   @IsNumber()

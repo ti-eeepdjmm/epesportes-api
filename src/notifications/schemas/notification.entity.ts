@@ -10,6 +10,7 @@ export enum NotificationType {
   POLL = 'poll',
   POST = 'post',
   GOAL = 'goal',
+  MENTION = 'mention',
 }
 
 @Schema({ timestamps: { createdAt: false, updatedAt: false } })
