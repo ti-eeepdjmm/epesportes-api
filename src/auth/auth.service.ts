@@ -4,6 +4,7 @@ import { SUPABASE_CLIENT } from './supabase-client.provider';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { LoginWithTokenDto } from './dto/login-with-token.dto';
 
 interface AuthResponse {
   user: User | null;
@@ -120,5 +121,26 @@ export class AuthService {
     }
 
     return { message: 'Password updated successfully' };
+  }
+
+  async loginWithIdToken({
+    provider,
+    id_token,
+    nonce,
+  }: LoginWithTokenDto): Promise<AuthResponse> {
+    const { data, error } = await this.supabase.auth.signInWithIdToken({
+      provider,
+      token: id_token,
+      nonce, // opcional, dependendo do provedor
+    });
+
+    if (error) {
+      throw new Error(error.message || 'Erro ao fazer login com token');
+    }
+
+    return {
+      user: data.user ?? null,
+      session: data.session ?? null,
+    };
   }
 }
