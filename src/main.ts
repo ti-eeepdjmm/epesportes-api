@@ -6,10 +6,11 @@ import { Reflector } from '@nestjs/core';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const port = process.env.PORT || 3000;
   // Aplica o JwtAuthGuard global
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
 
-  await app.listen(3000);
+  await app.listen(port, '0.0.0.0');
 }
 void bootstrap();
