@@ -28,7 +28,3 @@ jobs:
 
       - name: 🧹 Rodar lint
         run: npm run lint
-
-      - name: 🚀 Deploy (Railway, Render, etc)
-        if: github.ref == 'refs/heads/main'
-        run: curl -X POST ${{ secrets.RAILWAY_DEPLOY_HOOK }}
