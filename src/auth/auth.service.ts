@@ -73,6 +73,9 @@ export class AuthService {
       provider: 'google',
       options: {
         redirectTo: process.env.GOOGLE_REDIRECT_URL,
+        queryParams: {
+          prompt: 'select_account', // 👉 força mostrar a tela de escolha
+        },
       },
     });
 
