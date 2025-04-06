@@ -14,6 +14,7 @@ import { User } from '@supabase/supabase-js';
 import { RecoverPasswordDto } from './dto/recover-password.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { Public } from './decorators/public.decorator';
+import { LoginWithTokenDto } from './dto/login-with-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -75,6 +76,12 @@ export class AuthController {
         error instanceof Error ? error.message : 'Erro inesperado';
       throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
     }
+  }
+
+  @Public()
+  @Post('login/token')
+  async loginWithToken(@Body() dto: LoginWithTokenDto): Promise<unknown> {
+    return this.authService.loginWithIdToken(dto);
   }
   // auth.controller.ts
   @Post('recover-password')
