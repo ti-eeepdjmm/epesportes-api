@@ -6,6 +6,7 @@ import {
   Headers,
   HttpException,
   HttpStatus,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -15,6 +16,9 @@ import { RecoverPasswordDto } from './dto/recover-password.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { Public } from './decorators/public.decorator';
 import { LoginWithTokenDto } from './dto/login-with-token.dto';
+
+import { Response } from 'express';
+import { getCallbackRedirectHtml } from './templates/callback-redirect.template';
 
 @Controller('auth')
 export class AuthController {
@@ -97,5 +101,16 @@ export class AuthController {
   @Post('logout')
   async logout() {
     return this.authService.logout();
+  }
+
+  @Public()
+  @Get('callback-redirect')
+  callbackRedirect(@Res() res: Response) {
+    const appCallbackUrl = process.env.EXPO_APP_CALLBACK_URL || '';
+
+    const html = getCallbackRedirectHtml(appCallbackUrl);
+
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
   }
 }
