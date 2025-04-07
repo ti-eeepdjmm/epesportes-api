@@ -7,6 +7,7 @@ import {
   HttpException,
   HttpStatus,
   Res,
+  Query,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -106,11 +107,24 @@ export class AuthController {
   @Public()
   @Get('callback-redirect')
   callbackRedirect(@Res() res: Response) {
-    const appCallbackUrl = process.env.EXPO_APP_CALLBACK_URL || '';
-
-    const html = getCallbackRedirectHtml(appCallbackUrl);
-
     res.setHeader('Content-Type', 'text/html');
-    res.send(html);
+    res.send(getCallbackRedirectHtml());
+  }
+
+  @Public()
+  @Get('finish-google-login')
+  async finishGoogleLogin(@Query('token') token: string) {
+    if (!token) {
+      throw new HttpException('Token não informado', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      const user = await this.authService.getUser(token);
+      return { user }; // 🔁 já retorna em JSON
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Erro inesperado';
+      throw new HttpException(errorMessage, HttpStatus.UNAUTHORIZED);
+    }
   }
 }
