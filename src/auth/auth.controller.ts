@@ -20,6 +20,7 @@ import { LoginWithTokenDto } from './dto/login-with-token.dto';
 
 import { Response } from 'express';
 import { getCallbackRedirectHtml } from './templates/callback-redirect.template';
+import { getAuthResultHtml } from './templates/auth-result.template';
 
 @Controller('auth')
 export class AuthController {
@@ -113,18 +114,19 @@ export class AuthController {
 
   @Public()
   @Get('finish-google-login')
-  async finishGoogleLogin(@Query('token') token: string) {
+  finishGoogleLogin(@Query('token') token: string, @Res() res: Response) {
     if (!token) {
-      throw new HttpException('Token não informado', HttpStatus.BAD_REQUEST);
+      return res.status(400).send('Token ausente');
     }
 
-    try {
-      const user = await this.authService.getUser(token);
-      return { user }; // 🔁 já retorna em JSON
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Erro inesperado';
-      throw new HttpException(errorMessage, HttpStatus.UNAUTHORIZED);
-    }
+    const redirectUrl = `${process.env.APP_WEB_RETURN_URL}/auth/auth-result?token=${token}`;
+    return res.redirect(redirectUrl);
+  }
+
+  @Public()
+  @Get('auth-result')
+  authResult(@Query('token') token: string, @Res() res: Response) {
+    res.setHeader('Content-Type', 'text/html');
+    res.send(getAuthResultHtml(token));
   }
 }
