@@ -1,6 +1,6 @@
 // src/auth/templates/callback-redirect.template.ts
 
-export const callbackRedirectHtml = `
+export const getCallbackRedirectHtml = (appCallbackUrl: string) => `
 <!DOCTYPE html>
 <html>
   <head>
@@ -8,7 +8,7 @@ export const callbackRedirectHtml = `
     <script>
       const hash = window.location.hash;
       if (hash) {
-        const appUrl = 'exp://hkixado-rickalves-8081.exp.direct/--/callback' + hash;
+        const appUrl = '${appCallbackUrl}' + hash;
         window.location.href = appUrl;
       } else {
         document.body.innerText = 'Fragmento ausente na URL.';

@@ -18,7 +18,7 @@ import { Public } from './decorators/public.decorator';
 import { LoginWithTokenDto } from './dto/login-with-token.dto';
 
 import { Response } from 'express';
-import { callbackRedirectHtml } from './templates/callback-redirect.template';
+import { getCallbackRedirectHtml } from './templates/callback-redirect.template';
 
 @Controller('auth')
 export class AuthController {
@@ -106,7 +106,11 @@ export class AuthController {
   @Public()
   @Get('callback-redirect')
   callbackRedirect(@Res() res: Response) {
+    const appCallbackUrl = process.env.EXPO_APP_CALLBACK_URL || '';
+
+    const html = getCallbackRedirectHtml(appCallbackUrl);
+
     res.setHeader('Content-Type', 'text/html');
-    res.send(callbackRedirectHtml);
+    res.send(html);
   }
 }
