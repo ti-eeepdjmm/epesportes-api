@@ -1,22 +1,25 @@
 // src/auth/templates/callback-redirect.template.ts
 
-export const getCallbackRedirectHtml = (appCallbackUrl: string) => `
+export const getCallbackRedirectHtml = () => `
 <!DOCTYPE html>
 <html>
   <head>
     <title>Redirecionando...</title>
     <script>
-      const hash = window.location.hash;
-      if (hash) {
-        const appUrl = '${appCallbackUrl}' + hash;
-        window.location.href = appUrl;
+      const hash = window.location.hash.substring(1); // remove o "#"
+      const params = new URLSearchParams(hash);
+      const accessToken = params.get('access_token');
+
+      if (accessToken) {
+        const backendRedirect = '/auth/finish-google-login?token=' + accessToken;
+        window.location.replace(backendRedirect);
       } else {
-        document.body.innerText = 'Fragmento ausente na URL.';
+        document.body.innerText = 'Token não encontrado na URL.';
       }
     </script>
   </head>
   <body>
-    Redirecionando para o app...
+    Redirecionando para o backend...
   </body>
 </html>
 `;
