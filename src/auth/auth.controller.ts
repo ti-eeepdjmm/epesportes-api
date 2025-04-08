@@ -25,6 +25,7 @@ import { getAuthResultHtml } from './templates/auth-result.template';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
   @Public()
   @Post('register')
   async register(@Body() registerDto: RegisterDto): Promise<unknown> {
@@ -37,6 +38,7 @@ export class AuthController {
       throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
     }
   }
+
   @Public()
   @Post('login')
   async login(@Body() loginDto: LoginDto): Promise<unknown> {
@@ -65,6 +67,7 @@ export class AuthController {
       throw new HttpException(errorMessage, HttpStatus.UNAUTHORIZED);
     }
   }
+
   @Public()
   @Get('login/google')
   async loginGoogle(): Promise<{ url: string }> {

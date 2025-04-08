@@ -1,21 +1,21 @@
+// src/app.controller.ts
 import { Controller, Get } from '@nestjs/common';
+import { AppService } from './app.service';
 import { Public } from './auth/decorators/public.decorator';
 
 @Controller()
 export class AppController {
+  constructor(private readonly appService: AppService) {}
+
   @Public()
   @Get()
   getRoot(): string {
-    return '🚀 Bem-vindo à API EPesportes!';
+    return this.appService.getRoot();
   }
 
   @Public()
   @Get('health')
   getHealth() {
-    return {
-      status: 'ok',
-      uptime: process.uptime(),
-      timestamp: new Date(),
-    };
+    return this.appService.getHealth();
   }
 }
