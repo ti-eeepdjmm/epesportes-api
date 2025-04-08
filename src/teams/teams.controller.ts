@@ -11,6 +11,7 @@ import { TeamsService } from './teams.service';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 import { Team } from './entities/team.entity';
+import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('teams')
 export class TeamsController {
@@ -21,11 +22,13 @@ export class TeamsController {
     return this.teamsService.create(createTeamDto);
   }
 
+  @Public()
   @Get()
   findAll(): Promise<Team[]> {
     return this.teamsService.findAll();
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string): Promise<Team | null> {
     return this.teamsService.findOne(+id);

@@ -11,11 +11,13 @@ import { PlayersService } from './players.service';
 import { CreatePlayerDto } from './dto/create-player.dto';
 import { UpdatePlayerDto } from './dto/update-player.dto';
 import { Player } from './entities/player.entity';
+import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('players')
 export class PlayersController {
   constructor(private readonly playersService: PlayersService) {}
 
+  @Public()
   @Post()
   create(@Body() createPlayerDto: CreatePlayerDto): Promise<Player> {
     return this.playersService.create(createPlayerDto);

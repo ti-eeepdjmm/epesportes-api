@@ -14,9 +14,18 @@ describe('AppController', () => {
     appController = app.get<AppController>(AppController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+  describe('getRoot', () => {
+    it('should return welcome message', () => {
+      expect(appController.getRoot()).toBe('🚀 Bem-vindo à API EPesportes!');
+    });
+  });
+
+  describe('getHealth', () => {
+    it('should return health object with status ok', () => {
+      const health = appController.getHealth();
+      expect(health).toHaveProperty('status', 'ok');
+      expect(health).toHaveProperty('uptime');
+      expect(health).toHaveProperty('timestamp');
     });
   });
 });
