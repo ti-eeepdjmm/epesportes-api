@@ -21,6 +21,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AppGatewayModule } from './app-gateway/app-gateway.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthMiddleware } from './auth/auth.middleware';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { AuthMiddleware } from './auth/auth.middleware';
     AppGatewayModule,
     AuthModule,
   ],
+  controllers: [AppController],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
