@@ -29,15 +29,15 @@ export class PlayersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Player> {
+  findOne(@Param('id') id: number): Promise<Player | null> {
     return this.playersService.findOne(+id);
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updatePlayerDto: UpdatePlayerDto,
-  ): Promise<Player> {
+  ): Promise<Player | null> {
     return this.playersService.update(+id, updatePlayerDto);
   }
 

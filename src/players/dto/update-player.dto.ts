@@ -10,6 +10,10 @@ export class UpdatePlayerDto {
   teamId?: number; // ID do time (opcional)
 
   @IsOptional()
+  @IsNumber()
+  gameId?: number; // ID do time (opcional)
+
+  @IsOptional()
   @IsString()
   position?: string; // Posição do jogador (opcional)
 
