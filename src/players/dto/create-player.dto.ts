@@ -1,12 +1,14 @@
-import { IsString, IsNumber, IsOptional } from 'class-validator';
+import { IsString, IsNumber } from 'class-validator';
 
 export class CreatePlayerDto {
-  @IsOptional()
   @IsNumber()
-  userId?: number; // ID do usuário vinculado (opcional)
+  userId: number; // ID do usuário vinculado (opcional)
 
   @IsNumber()
   teamId: number; // ID do time (obrigatório)
+
+  @IsNumber()
+  gameId: number; // ID do time (obrigatório)
 
   @IsString()
   position: string; // Posição do jogador (obrigatório)
