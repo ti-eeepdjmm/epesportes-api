@@ -6,40 +6,26 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Player } from './entities/player.entity';
 import { User } from '../users/entities/user.entity';
 import { Team } from '../teams/entities/team.entity';
-import { NotFoundException } from '@nestjs/common';
+import { Game } from '../games/entities/game.entity';
 
 describe('PlayersService', () => {
   let service: PlayersService;
   let playerRepository: Repository<Player>;
   let userRepository: Repository<User>;
   let teamRepository: Repository<Team>;
+  let gameRepository: Repository<Game>;
 
-  // Objetos globais para serem usados nos testes
-  const team = {
-    id: 2,
-    name: 'Team A',
-    logo: 'logo.png',
-    createdAt: new Date(),
-  };
-  const user = {
-    id: 1,
-    name: 'User A',
-    email: 'user@example.com',
-    password: 'hashedpassword',
-    profilePhoto: 'profile.png',
-    favoriteTeam: team,
-    isAthlete: true,
-    birthDate: new Date(),
-    createdAt: new Date(),
-  };
+  const team = { id: 1, name: 'Team A', logo: 'logo.png' } as Team;
+  const game = { id: 1, name: 'Futsal', rules: 'Rules' } as Game;
+  const user = { id: 1, name: 'John Doe', email: 'john@example.com' } as User;
   const player = {
     id: 1,
     user,
     team,
-    position: 'Atacante',
-    jerseyNumber: 10,
-    createdAt: new Date(),
-  };
+    game,
+    position: 'Goleiro',
+    jerseyNumber: 1,
+  } as Player;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -47,154 +33,158 @@ describe('PlayersService', () => {
         PlayersService,
         {
           provide: getRepositoryToken(Player),
-          useClass: Repository,
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            findOneBy: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            remove: jest.fn(),
+          },
         },
         {
           provide: getRepositoryToken(User),
-          useClass: Repository,
+          useValue: {
+            findOneBy: jest.fn(),
+          },
         },
         {
           provide: getRepositoryToken(Team),
-          useClass: Repository,
+          useValue: {
+            findOneBy: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(Game),
+          useValue: {
+            findOneBy: jest.fn(),
+          },
         },
       ],
     }).compile();
 
     service = module.get<PlayersService>(PlayersService);
-    playerRepository = module.get<Repository<Player>>(
-      getRepositoryToken(Player),
-    );
-    userRepository = module.get<Repository<User>>(getRepositoryToken(User));
-    teamRepository = module.get<Repository<Team>>(getRepositoryToken(Team));
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+    playerRepository = module.get(getRepositoryToken(Player));
+    userRepository = module.get(getRepositoryToken(User));
+    teamRepository = module.get(getRepositoryToken(Team));
+    gameRepository = module.get(getRepositoryToken(Game));
   });
 
   describe('create', () => {
     it('should create a player', async () => {
-      const createPlayerDto = {
+      const dto = {
         userId: user.id,
         teamId: team.id,
-        position: 'Atacante',
-        jerseyNumber: 10,
+        gameId: game.id,
+        position: 'Goleiro',
+        jerseyNumber: 1,
       };
 
       jest.spyOn(teamRepository, 'findOneBy').mockResolvedValue(team);
+      jest.spyOn(gameRepository, 'findOneBy').mockResolvedValue(game);
       jest.spyOn(userRepository, 'findOneBy').mockResolvedValue(user);
-      jest.spyOn(playerRepository, 'create').mockReturnValue(player as Player);
-      jest.spyOn(playerRepository, 'save').mockResolvedValue(player as Player);
+      jest.spyOn(playerRepository, 'create').mockReturnValue(player);
+      jest.spyOn(playerRepository, 'save').mockResolvedValue(player);
 
-      const result = await service.create(createPlayerDto);
-
-      expect(result).toBe(player);
-      expect(teamRepository.findOneBy).toHaveBeenCalledWith({
-        id: createPlayerDto.teamId,
-      });
-      expect(userRepository.findOneBy).toHaveBeenCalledWith({
-        id: createPlayerDto.userId,
-      });
+      const result = await service.create(dto);
+      expect(result).toEqual(player);
+      expect(teamRepository.findOneBy).toHaveBeenCalledWith({ id: dto.teamId });
+      expect(gameRepository.findOneBy).toHaveBeenCalledWith({ id: dto.gameId });
+      expect(userRepository.findOneBy).toHaveBeenCalledWith({ id: dto.userId });
       expect(playerRepository.create).toHaveBeenCalledWith({
         user,
         team,
-        position: createPlayerDto.position,
-        jerseyNumber: createPlayerDto.jerseyNumber,
+        game,
+        position: dto.position,
+        jerseyNumber: dto.jerseyNumber,
       });
       expect(playerRepository.save).toHaveBeenCalledWith(player);
     });
 
-    it('should throw NotFoundException if team is not found', async () => {
-      const createPlayerDto = {
-        userId: user.id,
-        teamId: team.id,
+    it('should return error when team or game is null', async () => {
+      const dto = {
+        userId: 99,
+        teamId: 99,
+        gameId: 99,
         position: 'Atacante',
-        jerseyNumber: 10,
+        jerseyNumber: 9,
       };
 
       jest.spyOn(teamRepository, 'findOneBy').mockResolvedValue(null);
+      jest.spyOn(gameRepository, 'findOneBy').mockResolvedValue(null);
+      jest.spyOn(userRepository, 'findOneBy').mockResolvedValue(null);
 
-      await expect(service.create(createPlayerDto)).rejects.toThrow(
-        new NotFoundException(
-          `Team with ID ${createPlayerDto.teamId} not found`,
-        ),
+      await expect(service.create(dto)).rejects.toThrow(
+        'Erro not found(team | game | user)!',
       );
     });
   });
 
   describe('findAll', () => {
-    it('should return an array of players', async () => {
-      const players = [player, player];
-
-      jest
-        .spyOn(playerRepository, 'find')
-        .mockResolvedValue(players as Player[]);
-
-      const result = await service.findAll();
-
-      expect(result).toBe(players);
+    it('should return all players', async () => {
+      const result = [player];
+      jest.spyOn(playerRepository, 'find').mockResolvedValue(result);
+      expect(await service.findAll()).toEqual(result);
       expect(playerRepository.find).toHaveBeenCalledWith({
-        relations: ['user', 'team'],
+        relations: ['user', 'team', 'game'],
       });
     });
   });
 
   describe('findOne', () => {
-    it('should return a player by ID', async () => {
-      jest
-        .spyOn(playerRepository, 'findOne')
-        .mockResolvedValue(player as Player);
-
+    it('should return a player by id', async () => {
+      jest.spyOn(playerRepository, 'findOne').mockResolvedValue(player);
       const result = await service.findOne(player.id);
-
-      expect(result).toBe(player);
+      expect(result).toEqual(player);
       expect(playerRepository.findOne).toHaveBeenCalledWith({
         where: { id: player.id },
-        relations: ['user', 'team'],
+        relations: ['user', 'team', 'game'],
       });
     });
 
-    it('should throw NotFoundException if player is not found', async () => {
+    it('should return null if player not found', async () => {
       jest.spyOn(playerRepository, 'findOne').mockResolvedValue(null);
-
-      await expect(service.findOne(player.id)).rejects.toThrow(
-        new NotFoundException(`Player with ID ${player.id} not found`),
-      );
+      const result = await service.findOne(999);
+      expect(result).toBeNull();
     });
   });
 
   describe('update', () => {
-    it('should update a player', async () => {
-      const updatePlayerDto = { position: 'Goleiro', jerseyNumber: 1 };
+    it('should update player with team and user', async () => {
+      const dto = { teamId: team.id, userId: user.id, position: 'Zagueiro' };
 
-      jest.spyOn(service, 'findOne').mockResolvedValue(player as Player);
+      jest.spyOn(service, 'findOne').mockResolvedValue({ ...player } as Player);
+      jest.spyOn(teamRepository, 'findOneBy').mockResolvedValue(team);
+      jest.spyOn(userRepository, 'findOneBy').mockResolvedValue(user);
       jest.spyOn(playerRepository, 'save').mockResolvedValue({
         ...player,
-        ...updatePlayerDto,
-      } as Player);
-
-      const result = await service.update(player.id, updatePlayerDto);
-
-      expect(result).toEqual({ ...player, ...updatePlayerDto });
-      expect(service.findOne).toHaveBeenCalledWith(player.id);
-      expect(playerRepository.save).toHaveBeenCalledWith({
-        ...player,
-        ...updatePlayerDto,
+        ...dto,
       });
+
+      const result = await service.update(player.id, dto);
+      expect(result).toEqual({ ...player, ...dto });
+    });
+
+    it('should return null if player not found', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValue(null);
+      const result = await service.update(999, { position: 'Meio Campo' });
+      expect(result).toBeNull();
     });
   });
 
   describe('remove', () => {
-    it('should remove a player', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue(player as Player);
-      jest
-        .spyOn(playerRepository, 'remove')
-        .mockResolvedValue(player as Player);
-
+    it('should remove a player if exists', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValue(player);
+      jest.spyOn(playerRepository, 'remove').mockResolvedValue(player);
       await service.remove(player.id);
-
-      expect(service.findOne).toHaveBeenCalledWith(player.id);
       expect(playerRepository.remove).toHaveBeenCalledWith(player);
+    });
+
+    it('should not call remove if player does not exist', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValue(null);
+      const spy = jest.spyOn(playerRepository, 'remove');
+      await service.remove(999);
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 });

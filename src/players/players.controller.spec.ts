@@ -33,6 +33,13 @@ describe('PlayersController', () => {
       logo: 'logo.png',
       createdAt: new Date(),
     },
+    game: {
+      id: 2,
+      name: 'Futsal',
+      description: 'Jogo de futsal',
+      rules: 'Regras do futsal',
+      created_at: new Date(),
+    },
     position: 'Atacante',
     jerseyNumber: 10,
   };
@@ -67,6 +74,7 @@ describe('PlayersController', () => {
       const createPlayerDto: CreatePlayerDto = {
         userId: 1,
         teamId: 2,
+        gameId: 2,
         position: 'Atacante',
         jerseyNumber: 10,
       };
@@ -95,7 +103,7 @@ describe('PlayersController', () => {
 
       jest.spyOn(service, 'findOne').mockResolvedValue(result);
 
-      expect(await controller.findOne('1')).toBe(result);
+      expect(await controller.findOne(1)).toBe(result);
       expect(service.findOne).toHaveBeenCalledWith(1);
     });
   });
@@ -110,7 +118,7 @@ describe('PlayersController', () => {
 
       jest.spyOn(service, 'update').mockResolvedValue(result);
 
-      expect(await controller.update('1', updatePlayerDto)).toBe(result);
+      expect(await controller.update(1, updatePlayerDto)).toBe(result);
       expect(service.update).toHaveBeenCalledWith(1, updatePlayerDto);
     });
   });
