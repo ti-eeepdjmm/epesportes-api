@@ -23,8 +23,7 @@ describe('UsersService', () => {
   const user: User = {
     id: 1,
     name: 'User A',
-    email: 'user@example.com',
-    password: 'hashedpassword',
+    authUserId: 'b5298cda-4a9d-4b94-90d1-5c129f5e99a2',
     profilePhoto: 'http://example.com/photo.jpg',
     favoriteTeam: team,
     isAthlete: true,
@@ -55,8 +54,11 @@ describe('UsersService', () => {
     it('should create a user', async () => {
       const createUserDto = {
         name: 'User A',
-        email: 'user@example.com',
-        password: 'password123',
+        authUserId: 'b5298cda-4a9d-4b94-90d1-5c129f5e99a2',
+        profilePhoto: 'http://example.com/photo.jpg',
+        favoriteTeamId: 1,
+        isAthlete: true,
+        birthDate: new Date(),
       };
 
       jest.spyOn(userRepository, 'create').mockReturnValue(user);

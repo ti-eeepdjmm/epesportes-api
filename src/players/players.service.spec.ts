@@ -17,7 +17,7 @@ describe('PlayersService', () => {
 
   const team = { id: 1, name: 'Team A', logo: 'logo.png' } as Team;
   const game = { id: 1, name: 'Futsal', rules: 'Rules' } as Game;
-  const user = { id: 1, name: 'John Doe', email: 'john@example.com' } as User;
+  const user = { id: 1, name: 'John Doe' } as User;
   const player = {
     id: 1,
     user,
