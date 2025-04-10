@@ -14,8 +14,7 @@ describe('PlayersController', () => {
     user: {
       id: 1,
       name: 'User A',
-      email: 'user@example.com',
-      password: 'hashedpassword',
+      authUserId: 'b5298cda-4a9d-4b94-90d1-5c129f5e99a2',
       profilePhoto: 'http://example.com/photo.jpg',
       favoriteTeam: {
         id: 2,

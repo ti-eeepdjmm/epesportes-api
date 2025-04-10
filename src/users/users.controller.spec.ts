@@ -23,8 +23,7 @@ describe('UsersController', () => {
   const user: User = {
     id: 1,
     name: 'User A',
-    email: 'user@example.com',
-    password: 'hashedpassword',
+    authUserId: 'auth-uuid-1234',
     profilePhoto: 'http://example.com/photo.jpg',
     favoriteTeam: team,
     isAthlete: true,
@@ -61,8 +60,11 @@ describe('UsersController', () => {
     it('should create a user', async () => {
       const createUserDto: CreateUserDto = {
         name: 'User A',
-        email: 'user@example.com',
-        password: 'password123',
+        authUserId: 'auth-uuid-1234',
+        profilePhoto: 'http://example.com/photo.jpg',
+        favoriteTeamId: 1,
+        isAthlete: true,
+        birthDate: new Date('2000-01-01'), // Certifique-se de que seja um objeto Date
       };
 
       jest.spyOn(service, 'create').mockResolvedValue(user);
