@@ -66,7 +66,7 @@ export class MentionsService {
       sender: {
         id: senderUser.id,
         name: senderUser.name,
-        avatar: senderUser.password, // esse campo tá estranho, talvez seja user.avatar?
+        avatar: senderUser.profilePhoto,
       },
       timestamp: Date.now(),
     });

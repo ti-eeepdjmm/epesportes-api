@@ -10,29 +10,26 @@ import { Team } from '../../teams/entities/team.entity';
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
-  id: number; // ID do usuário (chave primária)
+  id: number; // ID interno da tabela (auto incremental)
 
   @Column()
   name: string; // Nome do usuário
 
-  @Column({ unique: true })
-  email: string; // Email único
-
-  @Column()
-  password: string; // Senha (hash)
+  @Column({ name: 'auth_user_id', type: 'uuid', unique: true })
+  authUserId: string; // UUID do usuário no Supabase Auth
 
   @Column({ nullable: true })
   profilePhoto: string; // Foto de perfil (opcional)
 
   @ManyToOne(() => Team, { nullable: true })
-  favoriteTeam: Team; // Time favorito (FK para teams, opcional)
+  favoriteTeam: Team; // Time favorito
 
   @Column({ default: false })
-  isAthlete: boolean; // Indica se é atleta (true) ou usuário comum (false)
+  isAthlete: boolean; // É atleta?
 
   @Column({ type: 'date', nullable: true })
-  birthDate: Date; // Data de nascimento (opcional)
+  birthDate: Date; // Data de nascimento
 
   @CreateDateColumn()
-  createdAt: Date; // Data de criação (preenchida automaticamente pelo TypeORM)
+  createdAt: Date;
 }

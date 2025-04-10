@@ -27,8 +27,7 @@ const mockTeam: Team = {
 const mockUser: User = {
   id: 1,
   name: 'Carlos Souza',
-  email: 'carlos.souza@example.com',
-  password: '$2b$10$AbcD1234HashedSenhaAqui', // hash fictício
+  authUserId: 'b5298cda-4a9d-4b94-90d1-5c129f5e99a2',
   profilePhoto: 'https://example.com/profiles/carlos.png',
   favoriteTeam: mockTeam,
   isAthlete: true,
