@@ -1,33 +1,32 @@
 import {
   IsString,
-  IsEmail,
   IsOptional,
   IsBoolean,
   IsDateString,
+  IsUUID,
+  IsInt,
 } from 'class-validator';
 
 export class CreateUserDto {
   @IsString()
-  name: string; // Nome do usuário
+  name: string;
 
-  @IsEmail()
-  email: string; // Email único
-
-  @IsString()
-  password: string; // Senha (hash)
-
-  @IsString()
-  @IsOptional()
-  profilePhoto?: string; // Foto de perfil (opcional)
+  @IsUUID()
+  authUserId: string; // UUID do Supabase Auth
 
   @IsOptional()
-  favoriteTeamId?: number; // ID do time favorito (opcional)
+  @IsString()
+  profilePhoto?: string;
 
+  @IsOptional()
+  @IsInt()
+  favoriteTeamId?: number;
+
+  @IsOptional()
   @IsBoolean()
-  @IsOptional()
-  isAthlete?: boolean; // Indica se é atleta (opcional)
+  isAthlete?: boolean;
 
-  @IsDateString()
   @IsOptional()
-  birthDate?: Date; // Data de nascimento (opcional)
+  @IsDateString()
+  birthDate?: Date;
 }
