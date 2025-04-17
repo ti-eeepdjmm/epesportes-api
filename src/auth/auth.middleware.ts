@@ -1,42 +1,27 @@
-import {
-  Inject,
-  Injectable,
-  NestMiddleware,
-  UnauthorizedException,
-} from '@nestjs/common';
+// src/auth/auth.middleware.ts
+import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { SUPABASE_CLIENT } from './supabase-client.provider';
 
-interface AuthenticatedRequest extends Request {
-  user?: any;
+interface TokenRequest extends Request {
+  accessToken?: string;
+  refreshToken?: string;
 }
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
-  constructor(
-    @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
-  ) {}
-
-  async use(req: Request, res: Response, next: NextFunction) {
-    try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return next(); // deixa passar, o guard vai cuidar
-      }
-
-      const token = authHeader.replace('Bearer ', '');
-      const { data, error } = await this.supabase.auth.getUser(token);
-      if (error || !data?.user) {
-        return next(
-          new UnauthorizedException('Token inválido ou usuário não encontrado'),
-        );
-      }
-
-      (req as AuthenticatedRequest).user = data.user;
-      next();
-    } catch (err) {
-      next(err);
+  use(req: TokenRequest, res: Response, next: NextFunction) {
+    // extrai Authorization
+    const authHeader = req.headers['authorization'];
+    if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+      req.accessToken = authHeader.slice(7);
     }
+
+    // extrai x-refresh-token
+    const refresh = req.headers['x-refresh-token'];
+    if (typeof refresh === 'string') {
+      req.refreshToken = refresh;
+    }
+
+    next();
   }
 }

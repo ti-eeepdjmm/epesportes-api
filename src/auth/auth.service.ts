@@ -1,16 +1,14 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { SupabaseClient, Session, User } from '@supabase/supabase-js';
 import { SUPABASE_CLIENT } from './supabase-client.provider';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
-import { LoginWithTokenDto } from './dto/login-with-token.dto';
 
 interface AuthResponse {
   user: User | null;
   session: Session | null;
 }
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -126,24 +124,33 @@ export class AuthService {
     return { message: 'Password updated successfully' };
   }
 
-  async loginWithIdToken({
-    provider,
-    id_token,
-    nonce,
-  }: LoginWithTokenDto): Promise<AuthResponse> {
-    const { data, error } = await this.supabase.auth.signInWithIdToken({
-      provider,
-      token: id_token,
-      nonce, // opcional, dependendo do provedor
+  /** Extrai o usuário de um access_token válido */
+  async validateToken(accessToken: string): Promise<User> {
+    const { data, error } = await this.supabase.auth.getUser(accessToken);
+    if (error || !data.user) {
+      throw new UnauthorizedException('Token inválido ou expirado');
+    }
+    return data.user;
+  }
+
+  /** Tenta trocar o refreshToken por uma nova sessão */
+  async refreshSession(
+    refreshToken: string,
+  ): Promise<{ session: Session; user: User }> {
+    // supabase-js v2
+    const { data, error } = await this.supabase.auth.refreshSession({
+      refresh_token: refreshToken,
     });
 
-    if (error) {
-      throw new Error(error.message || 'Erro ao fazer login com token');
+    if (error || !data.session || !data.user) {
+      throw new UnauthorizedException(
+        'Refresh token inválido ou expirado, faça login novamente',
+      );
     }
 
     return {
-      user: data.user ?? null,
-      session: data.session ?? null,
+      session: data.session,
+      user: data.user,
     };
   }
 }
