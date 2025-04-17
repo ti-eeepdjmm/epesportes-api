@@ -24,6 +24,7 @@ describe('UsersController', () => {
     id: 1,
     name: 'User A',
     authUserId: 'auth-uuid-1234',
+    email: 'user@email.com',
     profilePhoto: 'http://example.com/photo.jpg',
     favoriteTeam: team,
     isAthlete: true,
@@ -61,6 +62,7 @@ describe('UsersController', () => {
       const createUserDto: CreateUserDto = {
         name: 'User A',
         authUserId: 'auth-uuid-1234',
+        email: 'user@email.com',
         profilePhoto: 'http://example.com/photo.jpg',
         favoriteTeamId: 1,
         isAthlete: true,

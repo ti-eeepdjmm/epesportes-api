@@ -28,6 +28,7 @@ const mockUser: User = {
   id: 1,
   name: 'Carlos Souza',
   authUserId: 'b5298cda-4a9d-4b94-90d1-5c129f5e99a2',
+  email: 'user@email.com',
   profilePhoto: 'https://example.com/profiles/carlos.png',
   favoriteTeam: mockTeam,
   isAthlete: true,

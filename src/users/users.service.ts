@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -14,8 +19,33 @@ export class UsersService {
 
   // Método para criar um novo usuário
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const user = this.userRepository.create(createUserDto); // Cria uma instância do usuário com base no DTO
-    return this.userRepository.save(user); // Salva o usuário no banco de dados
+    const { email, authUserId } = createUserDto;
+
+    // Verificar se já existe e-mail
+    const existingEmail = await this.userRepository.findOne({
+      where: { email },
+    });
+    if (existingEmail) {
+      throw new ConflictException('E-mail já cadastrado');
+    }
+
+    // Verificar se já existe authUserId
+    const existingAuthUser = await this.userRepository.findOne({
+      where: { authUserId },
+    });
+    if (existingAuthUser) {
+      throw new ConflictException('Usuário de autenticação já cadastrado');
+    }
+
+    try {
+      const user = this.userRepository.create(createUserDto);
+      return await this.userRepository.save(user);
+    } catch (error) {
+      console.error('Erro ao criar usuário:', error);
+      throw new InternalServerErrorException(
+        'Erro ao criar usuário. Tente novamente mais tarde.',
+      );
+    }
   }
 
   // Método para buscar todos os usuários
@@ -34,6 +64,15 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
     return user; // Retorna o usuário encontrado
+  }
+
+  // Método para buscar um usuário pelo e-mail
+  async findByEmail(email: string): Promise<User> {
+    const user = await this.userRepository.findOneBy({ email });
+    if (!user) {
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
+    return user;
   }
 
   // Método para atualizar um usuário existente

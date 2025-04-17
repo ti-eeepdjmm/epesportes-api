@@ -5,7 +5,7 @@ import { UsersService } from './users.service';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -25,6 +25,7 @@ describe('UsersService', () => {
     name: 'User A',
     authUserId: 'b5298cda-4a9d-4b94-90d1-5c129f5e99a2',
     profilePhoto: 'http://example.com/photo.jpg',
+    email: 'user@email.com',
     favoriteTeam: team,
     isAthlete: true,
     birthDate: new Date(),
@@ -55,11 +56,16 @@ describe('UsersService', () => {
       const createUserDto = {
         name: 'User A',
         authUserId: 'b5298cda-4a9d-4b94-90d1-5c129f5e99a2',
+        email: 'user@email.com',
         profilePhoto: 'http://example.com/photo.jpg',
         favoriteTeamId: 1,
         isAthlete: true,
         birthDate: new Date(),
       };
+
+      // Mocks para findOne retornando null (não existe email nem authUserId)
+      jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(null); // Para email
+      jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(null); // Para authUserId
 
       jest.spyOn(userRepository, 'create').mockReturnValue(user);
       jest.spyOn(userRepository, 'save').mockResolvedValue(user);
@@ -69,6 +75,27 @@ describe('UsersService', () => {
       expect(result).toBe(user);
       expect(userRepository.create).toHaveBeenCalledWith(createUserDto);
       expect(userRepository.save).toHaveBeenCalledWith(user);
+    });
+  });
+
+  it('should throw ConflictException if email already exists', async () => {
+    const createUserDto = {
+      name: 'User B',
+      authUserId: 'auth-id-2',
+      email: 'existing@email.com',
+      profilePhoto: '',
+      favoriteTeamId: 1,
+      isAthlete: false,
+      birthDate: new Date(),
+    };
+
+    jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user); // Retorna user na primeira busca (email)
+
+    await expect(service.create(createUserDto)).rejects.toThrow(
+      ConflictException,
+    );
+    expect(userRepository.findOne).toHaveBeenCalledWith({
+      where: { email: createUserDto.email },
     });
   });
 
