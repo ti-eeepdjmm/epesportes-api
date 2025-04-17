@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Team } from '../../teams/entities/team.entity';
 import { Game } from '../../games/entities/game.entity';
+import { IsOptional } from 'class-validator';
 
 @Entity()
 export class Player {
@@ -17,9 +18,11 @@ export class Player {
   @ManyToOne(() => Game, { nullable: false })
   game: Game; // FK para a tabela games (obrigatório)
 
-  @Column()
-  position: string; // Posição do jogador (ex.: goleiro, atacante)
+  @Column({ nullable: true })
+  @IsOptional()
+  position?: string; // Posição do jogador (ex.: goleiro, atacante)
 
-  @Column()
-  jerseyNumber: number; // Número da camisa do jogador
+  @Column({ nullable: true })
+  @IsOptional()
+  jerseyNumber?: number; // Número da camisa do jogador
 }
