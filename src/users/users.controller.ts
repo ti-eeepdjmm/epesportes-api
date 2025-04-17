@@ -41,6 +41,12 @@ export class UsersController {
     return this.usersService.update(+id, updateUserDto);
   }
 
+  @Public()
+  @Get('email/:email')
+  findByEmail(@Param('email') email: string): Promise<User> {
+    return this.usersService.findByEmail(email);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string): Promise<void> {
     return this.usersService.remove(+id);

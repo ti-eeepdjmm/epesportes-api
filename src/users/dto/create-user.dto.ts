@@ -5,6 +5,7 @@ import {
   IsDateString,
   IsUUID,
   IsInt,
+  IsEmail,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -29,4 +30,7 @@ export class CreateUserDto {
   @IsOptional()
   @IsDateString()
   birthDate?: Date;
+
+  @IsEmail()
+  email: string;
 }
