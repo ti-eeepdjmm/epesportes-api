@@ -34,7 +34,7 @@ export class AuthService {
       options: {
         data: {
           full_name: full_name,
-          emailRedirectTo: process.env.APP_CALLBACK_URL,
+          emailRedirectTo: process.env.SIGNUP_CALLBACK_URL,
         },
       },
     });
