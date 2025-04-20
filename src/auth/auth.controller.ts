@@ -17,7 +17,6 @@ import { LoginDto } from './dto/login.dto';
 import { RecoverPasswordDto } from './dto/recover-password.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { Public } from './decorators/public.decorator';
-import { getCallbackRedirectHtml } from './templates/callback-redirect.template';
 
 // Extende o Request do Express para incluir o usuário autenticado
 interface TokenRequest extends Request {
@@ -146,15 +145,5 @@ export class AuthController {
         err instanceof Error ? err.message : 'Erro ao fazer logout';
       throw new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-  }
-
-  /**
-   * Callback OAuth — público
-   */
-  @Public()
-  @Get('callback-redirect')
-  callbackRedirect(@Res() res: Response): void {
-    res.setHeader('Content-Type', 'text/html');
-    res.send(getCallbackRedirectHtml());
   }
 }

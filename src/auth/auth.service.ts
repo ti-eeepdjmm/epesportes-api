@@ -1,4 +1,11 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+  Logger,
+} from '@nestjs/common';
 import { SupabaseClient, Session, User } from '@supabase/supabase-js';
 import { SUPABASE_CLIENT } from './supabase-client.provider';
 import { RegisterDto } from './dto/register.dto';
@@ -11,6 +18,7 @@ interface AuthResponse {
 }
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
   ) {}
@@ -26,6 +34,7 @@ export class AuthService {
       options: {
         data: {
           full_name: full_name,
+          emailRedirectTo: process.env.APP_CALLBACK_URL,
         },
       },
     });
@@ -41,19 +50,47 @@ export class AuthService {
   }
 
   async login({ email, password }: LoginDto): Promise<AuthResponse> {
-    const { data, error } = await this.supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await this.supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      throw new Error(error.message || 'Unexpected error during login');
+      if (error) {
+        // 401 para credenciais inválidas
+        if (
+          error.status === 400 ||
+          /invalid login credentials/i.test(error.message)
+        ) {
+          throw new UnauthorizedException('E‑mail ou senha inválidos');
+        }
+        // 400 para outro tipo de erro de validação
+        throw new BadRequestException(error.message);
+      }
+
+      // garante que data.user e data.session existam
+      if (!data.user || !data.session) {
+        throw new UnauthorizedException('Não foi possível autenticar');
+      }
+
+      return {
+        user: data.user,
+        session: data.session,
+      };
+    } catch (err: any) {
+      // repassa exceções já mapeadas
+      if (
+        err instanceof BadRequestException ||
+        err instanceof UnauthorizedException
+      ) {
+        throw err;
+      }
+      // log para depuração e retorna 500
+      this.logger.error('Erro inesperado durante login', err);
+      throw new InternalServerErrorException(
+        'Erro interno ao processar o login. Tente novamente mais tarde.',
+      );
     }
-
-    return {
-      user: data.user ?? null,
-      session: data.session ?? null,
-    };
   }
 
   async getUser(token: string): Promise<User> {
@@ -70,7 +107,7 @@ export class AuthService {
     const { data, error } = await this.supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: process.env.GOOGLE_REDIRECT_URL,
+        redirectTo: process.env.WEB_CALLBACK_URL,
         queryParams: {
           prompt: 'select_account', // 👉 força mostrar a tela de escolha
         },
@@ -90,7 +127,7 @@ export class AuthService {
 
   async recoverPassword(email: string): Promise<{ message: string }> {
     const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: process.env.RESET_PASSWORD_REDIRECT_URL,
+      redirectTo: process.env.APP_CALLBACK_URL,
     });
 
     if (error) {

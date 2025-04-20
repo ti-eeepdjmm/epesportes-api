@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
