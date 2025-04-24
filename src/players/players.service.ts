@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -35,7 +35,7 @@ export class PlayersService {
 
     // Previne uso de valores undefined/null
     if (!team || !game || !user) {
-      throw new Error('Erro not found(team | game | user)!'); // Se quiser, pode customizar com exceções
+      throw new NotFoundException('Erro not found(team | game | user)!'); // Se quiser, pode customizar com exceções
     }
 
     const player = this.playerRepository.create({
@@ -58,6 +58,15 @@ export class PlayersService {
   async findOne(id: number): Promise<Player | null> {
     return this.playerRepository.findOne({
       where: { id },
+      relations: ['user', 'team', 'game'],
+    });
+  }
+
+  async findByUser(userId: number): Promise<Player | null> {
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (!user) throw new NotFoundException('User not found!');
+    return this.playerRepository.findOne({
+      where: { user: { id: userId } },
       relations: ['user', 'team', 'game'],
     });
   }

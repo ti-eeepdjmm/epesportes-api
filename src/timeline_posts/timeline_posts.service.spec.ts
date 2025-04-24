@@ -34,6 +34,7 @@ const mockUser: User = {
   isAthlete: true,
   birthDate: new Date('2002-06-15'),
   createdAt: new Date('2025-03-25T10:30:00Z'),
+  username: 'carlos',
 };
 
 const notificationsService = {

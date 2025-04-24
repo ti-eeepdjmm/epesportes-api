@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -73,6 +74,16 @@ export class UsersService {
       throw new NotFoundException(`User with email ${email} not found`);
     }
     return user;
+  }
+
+  async checkUsernameAvailability(
+    username: string,
+  ): Promise<{ available: boolean }> {
+    const existing = await this.userRepository.findOne({ where: { username } });
+    if (existing) {
+      throw new NotAcceptableException(`Username @${username} not available!`);
+    }
+    return { available: !existing };
   }
 
   // Método para atualizar um usuário existente

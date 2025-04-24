@@ -47,6 +47,11 @@ export class UsersController {
     return this.usersService.findByEmail(email);
   }
 
+  @Get('check-username/:username')
+  async checkUsername(@Param('username') username: string) {
+    return this.usersService.checkUsernameAvailability(username);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string): Promise<void> {
     return this.usersService.remove(+id);
