@@ -24,6 +24,7 @@ describe('PlayersController', () => {
         createdAt: new Date(),
       },
       isAthlete: true,
+      username: 'user.a',
       birthDate: new Date(),
       createdAt: new Date(),
     },

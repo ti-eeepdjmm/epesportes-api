@@ -28,6 +28,7 @@ describe('UsersService', () => {
     email: 'user@email.com',
     favoriteTeam: team,
     isAthlete: true,
+    username: 'user.a',
     birthDate: new Date(),
     createdAt: new Date(),
   };

@@ -28,6 +28,7 @@ describe('UsersController', () => {
     profilePhoto: 'http://example.com/photo.jpg',
     favoriteTeam: team,
     isAthlete: true,
+    username: 'user.a',
     birthDate: new Date('2000-01-01'), // Certifique-se de que seja um objeto Date
     createdAt: new Date(),
   };
