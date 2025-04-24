@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
@@ -44,5 +45,26 @@ export class NotificationsController {
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<Notification> {
     return this.notificationsService.remove(id);
+  }
+
+  // ✅ Buscar notificações por usuário, com filtro por read (opcional)
+  @Get('user/:recipientId')
+  async findByRecipient(
+    @Param('recipientId') recipientId: string,
+    @Query('read') read?: string,
+  ): Promise<Notification[]> {
+    const readFilter = read !== undefined ? read === 'true' : undefined;
+    return this.notificationsService.findByRecipient(
+      Number(recipientId),
+      readFilter,
+    );
+  }
+
+  // ✅ Marcar todas como lidas
+  @Patch('user/:recipientId/mark-all-read')
+  async markAllAsRead(
+    @Param('recipientId') recipientId: string,
+  ): Promise<{ modifiedCount: number }> {
+    return this.notificationsService.markAllAsRead(Number(recipientId));
   }
 }

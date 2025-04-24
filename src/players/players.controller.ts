@@ -33,6 +33,11 @@ export class PlayersController {
     return this.playersService.findOne(+id);
   }
 
+  @Get('user/:id')
+  findByUser(@Param('id') id: number): Promise<Player | null> {
+    return this.playersService.findByUser(id);
+  }
+
   @Patch(':id')
   update(
     @Param('id') id: number,

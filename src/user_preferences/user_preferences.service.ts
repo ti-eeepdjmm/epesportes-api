@@ -45,6 +45,25 @@ export class UserPreferencesService {
     return userPreference;
   }
 
+  async findByUser(userId: number): Promise<UserPreference> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException('User not found!');
+    }
+
+    const userPreference = await this.userPreferenceRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+
+    if (!userPreference) {
+      throw new NotFoundException('User preference not found');
+    }
+
+    return userPreference;
+  }
+
   async update(
     id: number,
     updateUserPreferenceDto: UpdateUserPreferenceDto,

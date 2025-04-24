@@ -8,6 +8,11 @@ import {
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 
+type NotificationQuery = {
+  recipientId: number;
+  read?: boolean;
+};
+
 @Injectable()
 export class NotificationsService {
   constructor(
@@ -57,5 +62,24 @@ export class NotificationsService {
       throw new NotFoundException(`Notification with id ${id} not found`);
     }
     return deletedNotification;
+  }
+
+  // ✅ Buscar por usuário (com filtro opcional de lidas)
+  async findByRecipient(
+    recipientId: number,
+    read?: boolean,
+  ): Promise<Notification[]> {
+    const query: NotificationQuery = { recipientId };
+    if (read !== undefined) query.read = read;
+    return this.notificationModel.find(query).sort({ date: -1 }).exec();
+  }
+
+  // ✅ Marcar todas como lidas
+  async markAllAsRead(recipientId: number): Promise<{ modifiedCount: number }> {
+    const result = await this.notificationModel.updateMany(
+      { recipientId, read: false },
+      { $set: { read: true } },
+    );
+    return { modifiedCount: result.modifiedCount };
   }
 }
