@@ -69,7 +69,10 @@ export class UsersService {
 
   // Método para buscar um usuário pelo e-mail
   async findByEmail(email: string): Promise<User> {
-    const user = await this.userRepository.findOneBy({ email });
+    const user = await this.userRepository.findOne({
+      where: { email }, // Busca o usuário pelo ID
+      relations: ['favoriteTeam'], // Inclui o relacionamento com o time favorito
+    });
     if (!user) {
       throw new NotFoundException(`User with email ${email} not found`);
     }
