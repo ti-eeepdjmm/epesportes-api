@@ -42,4 +42,20 @@ export class MatchStatsController {
   remove(@Param('id') id: string) {
     return this.matchStatsService.remove(+id);
   }
+
+  // ============================================
+  // NOVOS ENDPOINTS
+  // ============================================
+
+  /** Estatísticas de uma partida específica */
+  @Get('match/:matchId')
+  findByMatchId(@Param('matchId') matchId: string) {
+    return this.matchStatsService.findByMatchId(+matchId);
+  }
+
+  /** Estatísticas de um time específico */
+  @Get('team/:teamId')
+  findByTeamId(@Param('teamId') teamId: string) {
+    return this.matchStatsService.findByTeamId(+teamId);
+  }
 }

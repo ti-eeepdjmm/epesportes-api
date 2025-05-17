@@ -32,6 +32,11 @@ export class EngagementStatsController {
     return this.engagementStatsService.findOne(+id);
   }
 
+  @Get('user/:userId')
+  findByUser(@Param('userId') userId: string) {
+    return this.engagementStatsService.findByUserId(+userId);
+  }
+
   @Patch(':id')
   update(
     @Param('id') id: string,

@@ -30,6 +30,16 @@ export class LineupsController {
     return this.lineupsService.findOne(+id);
   }
 
+  @Get('team/:teamId')
+  findByTeam(@Param('teamId') teamId: string) {
+    return this.lineupsService.findByTeamId(+teamId);
+  }
+
+  @Get('match/:matchId')
+  findByMatch(@Param('matchId') matchId: string) {
+    return this.lineupsService.findByMatchId(+matchId);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateLineupDto: UpdateLineupDto) {
     return this.lineupsService.update(+id, updateLineupDto);
