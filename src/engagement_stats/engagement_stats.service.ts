@@ -67,4 +67,29 @@ export class EngagementStatsService {
     if (result.affected === 0)
       throw new NotFoundException('Engagement stats not found');
   }
+
+  // ============================================
+  // NOVO MÉTODO: busca por usuário
+  // ============================================
+  /**
+   * Retorna todas as estatísticas de engajamento de um usuário.
+   * @param userId ID do usuário
+   */
+  async findByUserId(userId: number): Promise<EngagementStat[]> {
+    // garante que o usuário existe
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException(`User with id ${userId} not found`);
+
+    const stats = await this.engagementStatRepository.find({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+
+    if (!stats.length) {
+      throw new NotFoundException(
+        `No engagement stats found for user with id ${userId}`,
+      );
+    }
+    return stats;
+  }
 }
