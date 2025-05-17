@@ -64,12 +64,51 @@ export class LineupsService {
   async update(id: number, updateLineupDto: UpdateLineupDto): Promise<Lineup> {
     const lineup = await this.findOne(id);
     Object.assign(lineup, updateLineupDto);
-    // Caso seja necessário atualizar os relacionamentos, busque as novas entidades aqui.
+    // Se os relacionamentos (teamId, matchId, playerId) também precisarem ser atualizados,
+    // busque as entidades correspondentes aqui antes do save.
     return this.lineupRepository.save(lineup);
   }
 
   async remove(id: number): Promise<void> {
     const result = await this.lineupRepository.delete(id);
     if (result.affected === 0) throw new NotFoundException('Lineup not found');
+  }
+
+  // ============================================
+  // NOVOS MÉTODOS DE BUSCA
+  // ============================================
+
+  /**
+   * Retorna todas as escalações de um time específico.
+   * @param teamId ID do time
+   */
+  async findByTeamId(teamId: number): Promise<Lineup[]> {
+    const lineups = await this.lineupRepository.find({
+      where: { team: { id: teamId } },
+      relations: ['team', 'match', 'player'],
+    });
+    if (!lineups.length) {
+      throw new NotFoundException(
+        `No lineups found for team with id ${teamId}`,
+      );
+    }
+    return lineups;
+  }
+
+  /**
+   * Retorna todas as escalações de uma partida específica.
+   * @param matchId ID da partida
+   */
+  async findByMatchId(matchId: number): Promise<Lineup[]> {
+    const lineups = await this.lineupRepository.find({
+      where: { match: { id: matchId } },
+      relations: ['team', 'match', 'player'],
+    });
+    if (!lineups.length) {
+      throw new NotFoundException(
+        `No lineups found for match with id ${matchId}`,
+      );
+    }
+    return lineups;
   }
 }

@@ -78,4 +78,42 @@ export class MatchStatsService {
     if (result.affected === 0)
       throw new NotFoundException('Match stats not found');
   }
+
+  // ============================================
+  // NOVOS MÉTODOS DE BUSCA
+  // ============================================
+
+  /**
+   * Retorna todas as estatísticas associadas a uma partida específica.
+   * @param matchId ID da partida
+   */
+  async findByMatchId(matchId: number): Promise<MatchStat[]> {
+    const stats = await this.matchStatsRepository.find({
+      where: { match: { id: matchId } },
+      relations: ['match', 'team'],
+    });
+    if (!stats || stats.length === 0) {
+      throw new NotFoundException(
+        `No match stats found for match with id ${matchId}`,
+      );
+    }
+    return stats;
+  }
+
+  /**
+   * Retorna todas as estatísticas associadas a um time específico.
+   * @param teamId ID do time
+   */
+  async findByTeamId(teamId: number): Promise<MatchStat[]> {
+    const stats = await this.matchStatsRepository.find({
+      where: { team: { id: teamId } },
+      relations: ['match', 'team'],
+    });
+    if (!stats || stats.length === 0) {
+      throw new NotFoundException(
+        `No match stats found for team with id ${teamId}`,
+      );
+    }
+    return stats;
+  }
 }
