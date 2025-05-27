@@ -137,7 +137,7 @@ describe('AppGateway', () => {
   describe('emitPollUpdate', () => {
     it('should emit poll:update event', () => {
       const payload: PollUpdatePayload = {
-        pollId: 2,
+        pollId: '1234',
         title: 'Nova enquete',
         options: [],
         totalVotes: 0,

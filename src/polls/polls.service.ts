@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Poll, PollDocument } from './schemas/poll.schema';
@@ -47,7 +51,7 @@ export class PollsService {
   }
 
   async findAll(): Promise<PollDocument[]> {
-    return this.pollModel.find().exec();
+    return this.pollModel.find().sort({ expiration: -1 }).exec();
   }
 
   async findOne(id: string): Promise<PollDocument> {
@@ -94,7 +98,7 @@ export class PollsService {
         votes: option.votes,
       }));
       const payload: PollUpdatePayload = {
-        pollId: updatedPoll.id as number,
+        pollId: updatedPoll.id as string,
         title: updatedPoll.question,
         options: mappedOptions,
         totalVotes: updatedPoll.totalVotes,
@@ -113,5 +117,55 @@ export class PollsService {
       throw new NotFoundException(`Poll with id ${id} not found`);
     }
     return this.pollModel.findByIdAndDelete(id).exec();
+  }
+
+  async voteOnPoll(
+    pollId: string,
+    userId: number,
+    optionText: string,
+  ): Promise<PollDocument> {
+    const poll = await this.pollModel.findById(pollId);
+    if (!poll) {
+      throw new NotFoundException(`Enquete com id ${pollId} não encontrada.`);
+    }
+
+    if (poll.expiration.getTime() < Date.now()) {
+      throw new BadRequestException('A enquete está encerrada.');
+    }
+
+    const alreadyVoted = poll.options.some((opt) =>
+      opt.userVotes.includes(userId),
+    );
+    if (alreadyVoted) {
+      throw new BadRequestException('Usuário já votou nesta enquete.');
+    }
+
+    const option = poll.options.find((opt) => opt.option === optionText);
+    if (!option) {
+      throw new NotFoundException('Opção não encontrada na enquete.');
+    }
+
+    option.userVotes.push(userId);
+    await poll.save();
+
+    // Emitir atualização
+    const mappedOptions = poll.options.map((opt, index) => ({
+      id: index,
+      option: opt.option,
+      votes: opt.userVotes.length,
+    }));
+
+    const payload: PollUpdatePayload = {
+      pollId: poll.id as string,
+      title: poll.question,
+      options: mappedOptions,
+      totalVotes: poll.totalVotes,
+      expiration: poll.expiration,
+      date: new Date(),
+    };
+
+    this.appGateway.emitPollUpdate(payload);
+
+    return poll;
   }
 }

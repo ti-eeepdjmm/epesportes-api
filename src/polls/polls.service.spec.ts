@@ -9,10 +9,10 @@ import { AppGateway } from '../app-gateway/app/app.gateway';
 const mockPoll = {
   _id: '123',
   userId: 1,
-  question: 'What is your favorite color?',
+  question: 'Test?',
   options: [
-    { option: 'Red', votes: 10 },
-    { option: 'Blue', votes: 5 },
+    { option: 'Red', userVotes: [] },
+    { option: 'Blue', userVotes: [] },
   ],
   expiration: new Date(),
 };
@@ -27,6 +27,10 @@ class PollModelFake {
   }
 
   static find() {
+    return { exec: jest.fn().mockResolvedValue([mockPoll]) };
+  }
+
+  static sort() {
     return { exec: jest.fn().mockResolvedValue([mockPoll]) };
   }
 
