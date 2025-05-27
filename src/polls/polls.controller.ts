@@ -6,10 +6,12 @@ import {
   Param,
   Patch,
   Delete,
+  BadRequestException,
 } from '@nestjs/common';
 import { PollsService } from './polls.service';
 import { CreatePollDto } from './dto/create-poll.dto';
 import { UpdatePollDto } from './dto/update-poll.dto';
+import { VotePollDto } from './dto/vote-poll.dto';
 
 @Controller('polls')
 export class PollsController {
@@ -38,5 +40,14 @@ export class PollsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.pollsService.remove(id);
+  }
+
+  @Post(':id/vote')
+  vote(@Param('id') pollId: string, @Body() votePollDto: VotePollDto) {
+    const { userId, option } = votePollDto;
+    if (!userId || !option) {
+      throw new BadRequestException('userId e option são obrigatórios.');
+    }
+    return this.pollsService.voteOnPoll(pollId, userId, option);
   }
 }
