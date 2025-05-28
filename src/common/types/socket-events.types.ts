@@ -21,7 +21,7 @@ export interface NotificationPayload {
 
 // Tipagem para payload de atualização de enquete
 export interface PollUpdatePayload {
-  pollId: number;
+  pollId: string;
   title: string;
   options: {
     id: number;
