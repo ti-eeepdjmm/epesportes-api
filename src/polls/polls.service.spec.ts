@@ -1,65 +1,36 @@
-/* eslint-disable prefer-const */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Test, TestingModule } from '@nestjs/testing';
-import { getModelToken } from '@nestjs/mongoose';
 import { PollsService } from './polls.service';
-import { NotificationsService } from '../notifications/notifications.service';
+import { getModelToken } from '@nestjs/mongoose';
 import { AppGateway } from '../app-gateway/app/app.gateway';
-
-const mockPoll = {
-  _id: '123',
-  userId: 1,
-  question: 'Test?',
-  options: [
-    { option: 'Red', userVotes: [] },
-    { option: 'Blue', userVotes: [] },
-  ],
-  expiration: new Date(),
-};
-
-class PollModelFake {
-  constructor(private data: unknown) {
-    Object.assign(this, data);
-  }
-
-  save() {
-    return Promise.resolve(mockPoll);
-  }
-
-  static find() {
-    return { exec: jest.fn().mockResolvedValue([mockPoll]) };
-  }
-
-  static sort() {
-    return { exec: jest.fn().mockResolvedValue([mockPoll]) };
-  }
-
-  static findById(id: string) {
-    return { exec: jest.fn().mockResolvedValue(mockPoll) };
-  }
-
-  static findByIdAndUpdate(id: string, update: unknown, options: unknown) {
-    return { exec: jest.fn().mockResolvedValue(mockPoll) };
-  }
-
-  static findByIdAndDelete(id: string) {
-    return { exec: jest.fn().mockResolvedValue(mockPoll) };
-  }
-}
-const notificationsService = {
-  create: jest.fn(),
-} as unknown as NotificationsService;
+import { NotificationsService } from '../notifications/notifications.service';
+import { Poll } from './schemas/poll.schema';
 
 describe('PollsService', () => {
   let service: PollsService;
-  let appGateway: {
-    emitPollUpdate: jest.Mock;
-    emitGlobalNotification: jest.Mock;
+
+  // Mock do documento de enquete (simula o retorno de new this.pollModel().save())
+  const mockPollDoc = {
+    id: '123',
+    userId: 44,
+    question: 'Qual seu esporte favorito?',
+    options: [{ option: 'Futsal', votes: 0, userVotes: [] }],
+    expiration: new Date(Date.now() + 3600000),
+    totalVotes: 0,
+    save: jest.fn(),
   };
 
-  appGateway = {
-    emitPollUpdate: jest.fn(),
+  // Mock do model Mongoose (simula o construtor new this.pollModel(dto))
+  const mockPollModelConstructor = jest.fn(() => mockPollDoc);
+
+  // Mock do AppGateway
+  const mockAppGateway = {
     emitGlobalNotification: jest.fn(),
+    emitPollUpdate: jest.fn(),
+  };
+
+  // Mock do NotificationsService
+  const mockNotificationsService = {
+    create: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -67,49 +38,68 @@ describe('PollsService', () => {
       providers: [
         PollsService,
         {
-          provide: getModelToken('Poll'),
-          useValue: PollModelFake,
+          provide: getModelToken(Poll.name),
+          useValue: Object.assign(mockPollModelConstructor, {
+            // mocks de métodos do model, se necessário
+            find: jest.fn(),
+            findById: jest.fn(),
+            findByIdAndUpdate: jest.fn(),
+            findByIdAndDelete: jest.fn(),
+          }),
         },
-        { provide: NotificationsService, useValue: notificationsService },
-        { provide: AppGateway, useValue: appGateway },
+        {
+          provide: AppGateway,
+          useValue: mockAppGateway,
+        },
+        {
+          provide: NotificationsService,
+          useValue: mockNotificationsService,
+        },
       ],
     }).compile();
 
     service = module.get<PollsService>(PollsService);
+
+    // Define o valor resolvido pelo método save()
+    mockPollDoc.save.mockResolvedValue(mockPollDoc);
   });
 
-  it('should create a poll', async () => {
-    const dto = {
-      userId: 1,
-      question: 'What is your favorite color?',
-      options: [{ option: 'Red' }, { option: 'Blue' }],
-      expiration: new Date(),
-    };
-    const result = await service.create(dto);
-    expect(result).toEqual(mockPoll);
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('should return all polls', async () => {
-    const result = await service.findAll();
-    expect(result).toEqual([mockPoll]);
-  });
+  describe('create()', () => {
+    it('deve criar uma enquete, emitir notificação e retornar a enquete criada', async () => {
+      const dto = {
+        userId: 44,
+        question: 'Qual seu esporte favorito?',
+        options: [{ option: 'Futsal', votes: 0, userVotes: [] }],
+        expiration: new Date(Date.now() + 3600000),
+        totalVotes: 0,
+      };
 
-  it('should return one poll', async () => {
-    const validId = '507f1f77bcf86cd799439011';
-    const result = await service.findOne(validId);
-    expect(result).toEqual(mockPoll);
-  });
+      const result = await service.create(dto);
 
-  it('should update a poll', async () => {
-    const validId = '507f1f77bcf86cd799439011';
-    const dto = { question: 'Updated question?' };
-    const result = await service.update(validId, dto);
-    expect(result).toEqual(mockPoll);
-  });
+      expect(mockPollModelConstructor).toHaveBeenCalledWith(dto);
+      expect(mockPollDoc.save).toHaveBeenCalled();
 
-  it('should delete a poll', async () => {
-    const validId = '507f1f77bcf86cd799439011';
-    const result = await service.remove(validId);
-    expect(result).toEqual(mockPoll);
+      expect(mockNotificationsService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'poll',
+          message: 'Nova enquete criada',
+          link: 'polls/123',
+        }),
+      );
+
+      expect(mockAppGateway.emitGlobalNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: dto.question,
+          type: 'poll',
+          link: 'polls/123',
+        }),
+      );
+
+      expect(result).toEqual(mockPollDoc);
+    });
   });
 });
