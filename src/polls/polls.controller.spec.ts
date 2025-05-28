@@ -10,11 +10,11 @@ describe('PollsController', () => {
 
   const mockPoll = {
     _id: '123',
-    userId: 'user1',
-    question: 'What is your favorite color?',
+    userId: 1,
+    question: 'Test?',
     options: [
-      { option: 'Red', votes: 10 },
-      { option: 'Blue', votes: 5 },
+      { option: 'Red', userVotes: [] },
+      { option: 'Blue', userVotes: [] },
     ],
     expiration: new Date(),
   };
