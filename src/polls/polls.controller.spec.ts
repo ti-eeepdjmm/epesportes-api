@@ -11,10 +11,26 @@ describe('PollsController', () => {
   const mockPoll = {
     _id: '123',
     userId: 1,
-    question: 'Test?',
+    question: 'Qual o seu favorito?',
     options: [
-      { option: 'Red', userVotes: [] },
-      { option: 'Blue', userVotes: [] },
+      {
+        option: 'João Silva', // Nome exibido no card
+        value: '44', // Pode ser o ID do jogador
+        type: 'user',
+        userVotes: [],
+      },
+      {
+        option: 'Time Azul',
+        value: '12', // ID do time
+        type: 'team',
+        userVotes: [],
+      },
+      {
+        option: 'Nenhum dos dois',
+        value: 'none',
+        type: 'text',
+        userVotes: [],
+      },
     ],
     expiration: new Date(),
   };
@@ -46,7 +62,10 @@ describe('PollsController', () => {
       const createPollDto: CreatePollDto = {
         userId: 2,
         question: 'What is your favorite color?',
-        options: [{ option: 'Red' }, { option: 'Blue' }],
+        options: [
+          { type: 'text', value: 'Red' },
+          { type: 'text', value: 'Blue' },
+        ],
         expiration: new Date(),
       };
       // Utilizando spy para obter o método vinculado

@@ -13,7 +13,13 @@ describe('PollsService', () => {
     id: '123',
     userId: 44,
     question: 'Qual seu esporte favorito?',
-    options: [{ option: 'Futsal', votes: 0, userVotes: [] }],
+    options: [
+      {
+        value: 'futsal',
+        type: 'text',
+        userVotes: [],
+      },
+    ],
     expiration: new Date(Date.now() + 3600000),
     totalVotes: 0,
     save: jest.fn(),
@@ -73,12 +79,17 @@ describe('PollsService', () => {
       const dto = {
         userId: 44,
         question: 'Qual seu esporte favorito?',
-        options: [{ option: 'Futsal', votes: 0, userVotes: [] }],
+        options: [
+          {
+            value: 'futsal', // pode ser "futsal", "userId:44", "teamId:12", etc.
+            type: 'text', // obrigatório: "text", "user" ou "team"
+          },
+        ],
         expiration: new Date(Date.now() + 3600000),
-        totalVotes: 0,
       };
 
-      const result = await service.create(dto);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      const result = await service.create(dto as any);
 
       expect(mockPollModelConstructor).toHaveBeenCalledWith(dto);
       expect(mockPollDoc.save).toHaveBeenCalled();
