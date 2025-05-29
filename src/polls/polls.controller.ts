@@ -44,10 +44,10 @@ export class PollsController {
 
   @Post(':id/vote')
   vote(@Param('id') pollId: string, @Body() votePollDto: VotePollDto) {
-    const { userId, option } = votePollDto;
-    if (!userId || !option) {
+    const { userId, optionValue } = votePollDto;
+    if (!userId || !optionValue) {
       throw new BadRequestException('userId e option são obrigatórios.');
     }
-    return this.pollsService.voteOnPoll(pollId, userId, option);
+    return this.pollsService.voteOnPoll(pollId, userId, optionValue);
   }
 }

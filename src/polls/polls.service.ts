@@ -28,16 +28,16 @@ export class PollsService {
   async create(createPollDto: CreatePollDto): Promise<PollDocument> {
     const newPoll = new this.pollModel(createPollDto);
     const createdPoll = await newPoll.save();
-    // create and save the notification
+
     const newNotification: CreateNotificationDto = {
       type: NotificationType.POLL,
-      message: `Nova enquete criada`,
+      message: 'Nova enquete criada',
       date: new Date(),
       link: `polls/${createdPoll.id}`,
       isGlobal: true,
     };
     await this.notificationsService.create(newNotification);
-    // Emit the notifications to frontend
+
     const payload: GlobalNotificationPayload = {
       message: 'Nova Enquete Criada',
       title: createdPoll.question,
@@ -46,7 +46,7 @@ export class PollsService {
       type: 'poll',
     };
     this.appGateway.emitGlobalNotification(payload);
-    // return the created poll
+
     return createdPoll;
   }
 
@@ -72,7 +72,7 @@ export class PollsService {
     if (!updatedPoll) {
       throw new NotFoundException(`Poll with id ${id} not found`);
     }
-    // test if poll has expired!
+
     if (updatedPoll.expiration.getTime() < Date.now()) {
       const newNotification: CreateNotificationDto = {
         type: NotificationType.POLL,
@@ -92,11 +92,12 @@ export class PollsService {
       };
       this.appGateway.emitGlobalNotification(payload);
     } else {
-      const mappedOptions = updatedPoll.options.map((option, index) => ({
-        id: index, // ou se já houver um id, use option.id
-        option: option.option, // ou apenas option se o item for uma string
-        votes: option.votes,
+      const mappedOptions = updatedPoll.options.map((opt) => ({
+        type: opt.type,
+        value: opt.value,
+        userVotes: opt.userVotes,
       }));
+
       const payload: PollUpdatePayload = {
         pollId: updatedPoll.id as string,
         title: updatedPoll.question,
@@ -122,7 +123,7 @@ export class PollsService {
   async voteOnPoll(
     pollId: string,
     userId: number,
-    optionText: string,
+    optionValue: string,
   ): Promise<PollDocument> {
     const poll = await this.pollModel.findById(pollId);
     if (!poll) {
@@ -140,7 +141,7 @@ export class PollsService {
       throw new BadRequestException('Usuário já votou nesta enquete.');
     }
 
-    const option = poll.options.find((opt) => opt.option === optionText);
+    const option = poll.options.find((opt) => opt.value === optionValue);
     if (!option) {
       throw new NotFoundException('Opção não encontrada na enquete.');
     }
@@ -148,11 +149,10 @@ export class PollsService {
     option.userVotes.push(userId);
     await poll.save();
 
-    // Emitir atualização
-    const mappedOptions = poll.options.map((opt, index) => ({
-      id: index,
-      option: opt.option,
-      votes: opt.userVotes.length,
+    const mappedOptions = poll.options.map((opt) => ({
+      type: opt.type,
+      value: opt.value,
+      userVotes: opt.userVotes,
     }));
 
     const payload: PollUpdatePayload = {

@@ -24,9 +24,9 @@ export interface PollUpdatePayload {
   pollId: string;
   title: string;
   options: {
-    id: number;
-    option: string;
-    votes: number;
+    type: 'text' | 'user' | 'team'; // novo campo para indicar tipo da opção
+    value: string; // valor identificador único da opção
+    userVotes: number[];
   }[];
   totalVotes: number;
   expiration: Date;

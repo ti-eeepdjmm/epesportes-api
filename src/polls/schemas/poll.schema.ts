@@ -1,10 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema({ _id: false }) // opção embutida, sem gerar ID próprio
+export type PollOptionType = 'text' | 'user' | 'team';
+
+@Schema({ _id: false })
 class PollOption {
+  @Prop({ required: true, enum: ['text', 'user', 'team'] })
+  type: PollOptionType;
+
   @Prop({ required: true })
-  option: string;
+  value: string; // texto direto, userId ou teamId (como string)
 
   @Prop({ type: [Number], default: [] })
   userVotes: number[];
@@ -17,7 +22,7 @@ class PollOption {
 
 export const PollOptionSchema = SchemaFactory.createForClass(PollOption);
 
-// Adiciona virtual para cada opção
+// Adiciona virtual para votos
 PollOptionSchema.virtual('votes').get(function (this: PollOption) {
   return this.userVotes.length;
 });
@@ -44,7 +49,7 @@ export type PollDocument = Poll &
 
 export const PollSchema = SchemaFactory.createForClass(Poll);
 
-// Campo virtual que calcula a soma dos votos de todas as opções
+// Campo virtual que calcula votos totais
 PollSchema.virtual('totalVotes').get(function (this: PollDocument) {
   return this.options.reduce(
     (total, option) => total + option.userVotes.length,

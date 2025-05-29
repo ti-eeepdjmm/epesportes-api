@@ -1,4 +1,3 @@
-// src/polls/dto/vote-poll.dto.ts
 import { IsNumber, IsString } from 'class-validator';
 
 export class VotePollDto {
@@ -6,5 +5,5 @@ export class VotePollDto {
   userId: number;
 
   @IsString()
-  option: string;
+  optionValue: string;
 }
