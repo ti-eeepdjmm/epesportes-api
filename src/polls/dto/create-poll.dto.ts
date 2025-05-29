@@ -5,16 +5,23 @@ import {
   IsDateString,
   IsNumber,
   IsOptional,
+  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
+const allowedOptionTypes = ['text', 'user', 'team'] as const;
+type PollOptionType = (typeof allowedOptionTypes)[number];
+
 class CreatePollOptionDto {
+  @IsIn(allowedOptionTypes)
+  type: PollOptionType;
+
   @IsString()
-  option: string;
+  value: string;
 
   @IsArray()
   @IsNumber({}, { each: true })
-  @IsOptional() // opcional na criação (iniciado como array vazio)
+  @IsOptional()
   userVotes?: number[];
 }
 

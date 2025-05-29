@@ -63,6 +63,7 @@ export class TeamStandingsService {
       relations: ['team'],
       order: {
         points: 'DESC',
+        goalDifference: 'DESC', // critério de desempate adicionado
       },
     });
   }
