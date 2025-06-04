@@ -16,6 +16,7 @@ import {
   MatchUpdatePayload,
   PollUpdatePayload,
   GlobalNotificationPayload,
+  TimelineUpdatePayload,
 } from 'src/common/types/socket-events.types';
 
 @WebSocketGateway({
@@ -91,5 +92,10 @@ export class AppGateway
   emitGlobalNotification(payload: GlobalNotificationPayload): void {
     this.server.emit('global:notification', payload);
     this.logger.log('global:notification', payload);
+  }
+
+  emitTimelineUpdate(payload: TimelineUpdatePayload): void {
+    this.server.emit('timeline:update', payload);
+    this.logger.log('timeline:update', payload);
   }
 }
