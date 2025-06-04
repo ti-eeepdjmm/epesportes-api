@@ -12,6 +12,7 @@ import { NewPostPayload } from '../common/types/socket-events.types';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateNotificationDto } from '../notifications/dto/create-notification.dto';
 import { NotificationType } from '../notifications/schemas/notification.entity';
+import { TimelinePostType } from 'src/common/types/timeline-post.type';
 
 @Injectable()
 export class TimelinePostsService {
@@ -57,7 +58,7 @@ export class TimelinePostsService {
   async update(
     id: string,
     updatePostDto: UpdateTimelinePostDto,
-  ): Promise<TimelinePost | null> {
+  ): Promise<TimelinePostType | null> {
     if (!Types.ObjectId.isValid(id)) {
       throw new Error('Invalid ObjectId format');
     }
@@ -162,9 +163,22 @@ export class TimelinePostsService {
     }
 
     // 5. Atualiza o post no banco e retorna
-    return this.timelinePostModel
+    const updatedPost = await this.timelinePostModel
       .findByIdAndUpdate(new Types.ObjectId(id), updatePostDto, { new: true })
+      .lean<TimelinePostType>()
       .exec();
+
+    if (updatedPost) {
+      this.appGateway.emitTimelineUpdate({
+        postId: updatedPost._id.toString(),
+        updatedPost: {
+          ...updatedPost,
+          _id: updatedPost._id.toString(),
+        },
+      });
+    }
+
+    return updatedPost;
   }
 
   async remove(id: string): Promise<TimelinePost | null> {
