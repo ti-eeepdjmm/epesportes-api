@@ -72,3 +72,28 @@ export interface MatchUpdatePayload {
   timestamp: number;
   extra?: any; // opcional, para mais dados como autor do gol, tempo de jogo, etc.
 }
+
+// Tipagem para payload de atualização de uma postagem da timeline (resenha)
+export interface TimelineUpdatePayload {
+  postId: string;
+  updatedPost: {
+    _id: string;
+    userId: number;
+    content: string;
+    media: string[];
+    reactions: {
+      liked: number[];
+      beast: number[];
+      plays_great: number[];
+      amazing_goal: number[];
+      stylish: number[];
+    };
+    comments: {
+      userId: number;
+      content: string;
+      commentDate: string;
+    }[];
+    postDate: string;
+    __v?: number;
+  };
+}
