@@ -11,7 +11,6 @@ import {
 import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import {
-  NewPostPayload,
   NotificationPayload,
   MatchUpdatePayload,
   PollUpdatePayload,
@@ -64,12 +63,6 @@ export class AppGateway
     }
   }
 
-  // Emite uma notificação de nova postagem para todos os clientes conectados
-  emitNewPost(payload: NewPostPayload): void {
-    this.server.emit('feed:new-post', payload);
-    this.logger.log('feed:new-post', payload);
-  }
-
   // Emite uma notificação privada para um usuário específico
   emitNotification(userId: number, payload: NotificationPayload): void {
     this.server.to(`user-${userId}`).emit(`feed:new-${payload.type}`, payload);
@@ -94,8 +87,15 @@ export class AppGateway
     this.logger.log('global:notification', payload);
   }
 
+  // Emite atualização de timeline para todos os usuários
   emitTimelineUpdate(payload: TimelineUpdatePayload): void {
     this.server.emit('timeline:update', payload);
     this.logger.log('timeline:update', payload);
+  }
+
+  // Emite uma notificação de nova postagem para todos os clientes conectados
+  emitNewPost(post: TimelineUpdatePayload['updatedPost']): void {
+    this.server.emit('feed:new-post', post);
+    this.logger.log('feed:new-post', post);
   }
 }
