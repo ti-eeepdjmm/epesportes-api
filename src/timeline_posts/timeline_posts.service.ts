@@ -8,7 +8,6 @@ import { AppGateway } from '../app-gateway/app/app.gateway';
 import { User } from '../users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NewPostPayload } from '../common/types/socket-events.types';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateNotificationDto } from '../notifications/dto/create-notification.dto';
 import { NotificationType } from '../notifications/schemas/notification.entity';
@@ -26,22 +25,40 @@ export class TimelinePostsService {
   ) {}
 
   async create(createPostDto: CreateTimelinePostDto): Promise<TimelinePost> {
+    // 1. Criar e salvar o post
     const newPost = new this.timelinePostModel(createPostDto);
-    const payload: NewPostPayload = {
-      author: newPost.userId,
-      postId: (newPost._id as string).toString(),
-      timestamp: Date.now(),
-    };
+    const savedPost = await newPost.save();
+
+    // 2. Criar e salvar notificação global
     const newNotification: CreateNotificationDto = {
       type: NotificationType.POST,
       message: 'Novo post',
       date: new Date(),
-      link: `timeline-posts/${(newPost._id as string).toString()}`,
+      link: `timeline-posts/${savedPost._id as string}`,
       isGlobal: true,
     };
     await this.notificationsService.create(newNotification);
+
+    // 3. Emitir post completo para o frontend via WebSocket
+    const idString = (savedPost._id as Types.ObjectId).toString();
+    const payload = {
+      _id: idString, // conversão segura para string
+      userId: savedPost.userId,
+      content: savedPost.content,
+      media: savedPost.media,
+      reactions: savedPost.reactions,
+      comments: savedPost.comments.map((comment) => ({
+        userId: comment.userId,
+        content: comment.content,
+        commentDate: new Date(comment.commentDate), // conversão segura
+      })),
+      postDate: new Date().toISOString(),
+      __v: savedPost.__v,
+    };
+
     this.appGateway.emitNewPost(payload);
-    return newPost.save();
+
+    return savedPost;
   }
 
   async findAll(): Promise<TimelinePost[]> {
