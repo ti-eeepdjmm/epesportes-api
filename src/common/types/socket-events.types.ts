@@ -91,7 +91,7 @@ export interface TimelineUpdatePayload {
     comments: {
       userId: number;
       content: string;
-      commentDate: string;
+      commentDate: Date;
     }[];
     postDate: string;
     __v?: number;

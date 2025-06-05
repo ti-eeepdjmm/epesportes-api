@@ -14,7 +14,7 @@ export interface TimelinePostType {
   comments: {
     userId: number;
     content: string;
-    commentDate: string;
+    commentDate: Date; // Pode ser Date ou string dependendo do formato
   }[];
   postDate: string;
   __v?: number;

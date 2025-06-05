@@ -6,16 +6,34 @@ import { TimelinePost } from './schemas/timeline_post.schema';
 import { AppGateway } from '../app-gateway/app/app.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 import { User } from '../users/entities/user.entity';
+import { Types } from 'mongoose';
 
 describe('TimelinePostsService', () => {
   let service: TimelinePostsService;
 
-  const mockSave = jest.fn().mockResolvedValue({ content: 'created' });
+  const mockObjectId = new Types.ObjectId();
 
-  // Mock que simula o uso de `new this.timelinePostModel(...)`
-  const MockTimelinePostModel = jest.fn().mockImplementation(() => ({
+  const savedPostMock = {
+    _id: mockObjectId,
     userId: 1,
-    _id: 'abc123',
+    content: 'Post',
+    media: [],
+    reactions: {
+      liked: [],
+      beast: [],
+      plays_great: [],
+      amazing_goal: [],
+      stylish: [],
+    },
+    comments: [],
+    postDate: new Date(),
+    __v: 0,
+  };
+
+  const mockSave = jest.fn().mockResolvedValue(savedPostMock);
+
+  const MockTimelinePostModel = jest.fn().mockImplementation(() => ({
+    ...savedPostMock,
     save: mockSave,
   }));
 
@@ -99,11 +117,36 @@ describe('TimelinePostsService', () => {
   });
 
   it('should create a post and emit socket + notification', async () => {
-    const dto = { userId: 1, content: 'Hello world' };
-    const result = await service.create(dto);
-    expect(result).toEqual({ content: 'created' });
+    const dto = {
+      userId: 1,
+      content: 'Post',
+      media: [],
+      reactions: {
+        liked: [],
+        beast: [],
+        plays_great: [],
+        amazing_goal: [],
+        stylish: [],
+      },
+      comments: [],
+    };
+
+    const result = await service.create(dto); // cast para evitar exigência de campos adicionais
+
     expect(mockSave).toHaveBeenCalled();
-    expect(mockGateway.emitNewPost).toHaveBeenCalled();
-    expect(mockNotificationsService.create).toHaveBeenCalled();
+    expect(result).toEqual(savedPostMock);
+    expect(mockGateway.emitNewPost).toHaveBeenCalledWith(
+      expect.objectContaining({
+        _id: mockObjectId.toString(),
+        userId: 1,
+        content: 'Post',
+      }),
+    );
+    expect(mockNotificationsService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Novo post',
+        link: `timeline-posts/${mockObjectId.toString()}`,
+      }),
+    );
   });
 });

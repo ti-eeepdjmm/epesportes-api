@@ -4,12 +4,12 @@ import { AppGateway } from './app.gateway';
 import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import {
-  NewPostPayload,
   NotificationPayload,
   MatchUpdatePayload,
   PollUpdatePayload,
   GlobalNotificationPayload,
 } from '../../common/types/socket-events.types';
+import { TimelinePostType } from '../../common/types/timeline-post.type';
 
 describe('AppGateway', () => {
   let gateway: AppGateway;
@@ -88,10 +88,27 @@ describe('AppGateway', () => {
 
   describe('emitNewPost', () => {
     it('should emit feed:new-post event', () => {
-      const payload: NewPostPayload = {
-        postId: 'post123',
-        author: 2,
-        timestamp: Date.now(),
+      const payload: TimelinePostType = {
+        _id: 'post123',
+        userId: 1,
+        content: 'Novo post',
+        media: [],
+        reactions: {
+          liked: [44, 45, 46],
+          beast: [49, 50],
+          plays_great: [55],
+          amazing_goal: [60],
+          stylish: [61],
+        },
+        comments: [
+          {
+            userId: 2,
+            content: 'Novo comentario!',
+            commentDate: new Date(),
+          },
+        ],
+        postDate: new Date().toISOString(),
+        __v: 0,
       };
 
       gateway.emitNewPost(payload);
