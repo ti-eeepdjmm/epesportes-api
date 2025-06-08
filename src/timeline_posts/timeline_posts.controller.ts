@@ -75,7 +75,11 @@ export class TimelinePostsController {
   @Post(':id/react')
   addReaction(@Param('id') id: string, @Body() body: AddReactionDto) {
     // eslint-disable-next-line prettier/prettier
-    return this.timelinePostsService.addReaction(id, body.reactionType, body.userId);
+    return this.timelinePostsService.addReaction(
+      id,
+      body.reactionType,
+      body.userId,
+    );
   }
 
   @Post(':id/comment')
