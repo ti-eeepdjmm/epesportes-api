@@ -222,7 +222,10 @@ export class TimelinePostsService {
       throw new Error('Invalid ObjectId format');
     }
 
-    const post = await this.timelinePostModel.findById(postId);
+    const post = (await this.timelinePostModel
+      .findById(postId)
+      .exec()) as TimelinePost & { _id: Types.ObjectId };
+
     if (!post) throw new NotFoundException('Post não encontrado');
 
     // 🔁 1. Remove o userId de todas as reações existentes (modelo LinkedIn)
@@ -263,18 +266,21 @@ export class TimelinePostsService {
 
         await this.notificationsService.create(newNotification);
 
-        this.appGateway.emitNotification(post.userId, {
-          type: 'reaction',
-          message: `${user.name} reagiu ao seu post!`,
-          link: `/timeline-posts/${postId}`,
-          reaction: reactionType,
-          sender: {
-            id: user.id,
-            name: user.name,
-            avatar: user.profilePhoto,
-          },
-          timestamp: Date.now(),
-        });
+        // 4. Emitir atualização para a timeline (como no update)
+        const updatedPost = await this.timelinePostModel
+          .findById(post._id)
+          .lean<TimelinePostType>()
+          .exec();
+
+        if (updatedPost) {
+          this.appGateway.emitTimelineUpdate({
+            postId: updatedPost._id.toString(),
+            updatedPost: {
+              ...updatedPost,
+              _id: updatedPost._id.toString(),
+            },
+          });
+        }
       }
     }
 
@@ -316,17 +322,21 @@ export class TimelinePostsService {
         };
         await this.notificationsService.create(newNotification);
 
-        this.appGateway.emitNotification(post.userId, {
-          type: 'comment',
-          message: `${user.name} comentou no seu post`,
-          link: `/timeline-posts/${postId}`,
-          sender: {
-            id: user.id,
-            name: user.name,
-            avatar: user.profilePhoto,
-          },
-          timestamp: Date.now(),
-        });
+        // Emitir post atualizado completo para a timeline
+        const updatedPost = await this.timelinePostModel
+          .findById(post._id)
+          .lean<TimelinePostType>()
+          .exec();
+
+        if (updatedPost) {
+          this.appGateway.emitTimelineUpdate({
+            postId: updatedPost._id.toString(),
+            updatedPost: {
+              ...updatedPost,
+              _id: updatedPost._id.toString(),
+            },
+          });
+        }
       }
     }
 
