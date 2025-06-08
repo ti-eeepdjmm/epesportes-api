@@ -265,6 +265,18 @@ export class TimelinePostsService {
         };
 
         await this.notificationsService.create(newNotification);
+        this.appGateway.emitNotification(post.userId, {
+          type: 'reaction',
+          message: `${user.name} reagiu ao seu post!`,
+          link: `/timeline-posts/${postId}`,
+          reaction: reactionType,
+          sender: {
+            id: user.id,
+            name: user.name,
+            avatar: user.profilePhoto,
+          },
+          timestamp: Date.now(),
+        });
 
         // 4. Emitir atualização para a timeline (como no update)
         const updatedPost = await this.timelinePostModel
@@ -321,6 +333,18 @@ export class TimelinePostsService {
           link: `timeline-posts/${postId}`,
         };
         await this.notificationsService.create(newNotification);
+
+        this.appGateway.emitNotification(post.userId, {
+          type: 'comment',
+          message: `${user.name} comentou no seu post`,
+          link: `/timeline-posts/${postId}`,
+          sender: {
+            id: user.id,
+            name: user.name,
+            avatar: user.profilePhoto,
+          },
+          timestamp: Date.now(),
+        });
 
         // Emitir post atualizado completo para a timeline
         const updatedPost = await this.timelinePostModel
