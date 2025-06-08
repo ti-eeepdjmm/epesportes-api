@@ -4,7 +4,7 @@
 import { IsString, IsArray, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
-class ReactionsDto {
+export class ReactionsDto {
   @IsArray() @IsOptional() liked?: number[];
   @IsArray() @IsOptional() beast?: number[];
   @IsArray() @IsOptional() plays_great?: number[];
@@ -12,7 +12,7 @@ class ReactionsDto {
   @IsArray() @IsOptional() stylish?: number[];
 }
 
-class CommentDto {
+export class CommentDto {
   @IsString() userId: number;
   @IsString() content: string;
   @IsOptional() @Type(() => Date) commentDate?: Date;
