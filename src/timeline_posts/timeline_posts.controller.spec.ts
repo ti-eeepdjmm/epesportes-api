@@ -17,7 +17,12 @@ describe('TimelinePostsController', () => {
           provide: TimelinePostsService,
           useValue: {
             create: jest.fn().mockResolvedValue({}),
-            findAll: jest.fn().mockResolvedValue([]),
+            findAllPaginated: jest.fn().mockResolvedValue({
+              data: [],
+              total: 0,
+              page: 1,
+              limit: 10,
+            }),
             findOne: jest.fn().mockResolvedValue({}),
             update: jest.fn().mockResolvedValue({}),
             remove: jest.fn().mockResolvedValue({}),
@@ -40,9 +45,16 @@ describe('TimelinePostsController', () => {
     expect(service.create).toHaveBeenCalledWith(dto);
   });
 
-  it('should return all posts', async () => {
-    await expect(controller.findAll()).resolves.toEqual([]);
-    expect(service.findAll).toHaveBeenCalled();
+  it('should return paginated posts', async () => {
+    await expect(
+      controller.findAllPaginated('1', '10', undefined),
+    ).resolves.toEqual({
+      data: [],
+      total: 0,
+      page: 1,
+      limit: 10,
+    });
+    expect(service.findAllPaginated).toHaveBeenCalledWith(1, 10, undefined);
   });
 
   it('should return one post', async () => {

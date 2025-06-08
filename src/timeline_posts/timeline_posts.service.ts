@@ -13,6 +13,12 @@ import { CreateNotificationDto } from '../notifications/dto/create-notification.
 import { NotificationType } from '../notifications/schemas/notification.entity';
 import { TimelinePostType } from 'src/common/types/timeline-post.type';
 
+type ReactionType =
+  | 'liked'
+  | 'beast'
+  | 'plays_great'
+  | 'amazing_goal'
+  | 'stylish';
 @Injectable()
 export class TimelinePostsService {
   constructor(
@@ -205,5 +211,151 @@ export class TimelinePostsService {
     return this.timelinePostModel
       .findByIdAndDelete(new Types.ObjectId(id))
       .exec();
+  }
+
+  async addReaction(
+    postId: string,
+    reactionType: ReactionType,
+    userId: number,
+  ): Promise<TimelinePost> {
+    if (!Types.ObjectId.isValid(postId)) {
+      throw new Error('Invalid ObjectId format');
+    }
+
+    const post = await this.timelinePostModel.findById(postId);
+    if (!post) throw new NotFoundException('Post não encontrado');
+
+    // 🔁 1. Remove o userId de todas as reações existentes (modelo LinkedIn)
+    for (const key in post.reactions) {
+      const typedKey = key as ReactionType;
+      const current = post.reactions[typedKey];
+
+      if (Array.isArray(current)) {
+        // Atualiza corretamente via Mongoose
+        post.set(
+          `reactions.${typedKey}`,
+          current.filter((id) => id !== userId),
+        );
+      } else {
+        post.set(`reactions.${typedKey}`, []);
+      }
+    }
+
+    // ➕ 2. Adiciona o userId à nova reação
+    const updated = post.reactions[reactionType] ?? [];
+    post.set(`reactions.${reactionType}`, [...updated, userId]);
+
+    await post.save();
+
+    // 🔔 3. Notifica o autor, se não for o próprio usuário
+    if (userId !== post.userId) {
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+
+      if (user) {
+        const newNotification: CreateNotificationDto = {
+          recipientId: post.userId,
+          senderId: userId,
+          type: NotificationType.REACTION,
+          message: `${user.name} reagiu ao seu post!`,
+          date: new Date(),
+          link: `timeline-posts/${postId}`,
+        };
+
+        await this.notificationsService.create(newNotification);
+
+        this.appGateway.emitNotification(post.userId, {
+          type: 'reaction',
+          message: `${user.name} reagiu ao seu post!`,
+          link: `/timeline-posts/${postId}`,
+          reaction: reactionType,
+          sender: {
+            id: user.id,
+            name: user.name,
+            avatar: user.profilePhoto,
+          },
+          timestamp: Date.now(),
+        });
+      }
+    }
+
+    return post;
+  }
+
+  async addComment(
+    postId: string,
+    userId: number,
+    content: string,
+  ): Promise<TimelinePost> {
+    if (!Types.ObjectId.isValid(postId)) {
+      throw new Error('Invalid ObjectId format');
+    }
+
+    const post = await this.timelinePostModel.findById(postId);
+    if (!post) throw new NotFoundException('Post não encontrado');
+
+    const newComment = {
+      userId,
+      content,
+      commentDate: new Date(),
+    };
+
+    post.comments.push(newComment);
+    await post.save();
+
+    // Notificar o autor do post se não for o mesmo usuário
+    if (userId !== post.userId) {
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      if (user) {
+        const newNotification: CreateNotificationDto = {
+          recipientId: post.userId,
+          senderId: userId,
+          type: NotificationType.COMMENT,
+          message: `${user.name} comentou no seu post`,
+          date: new Date(),
+          link: `timeline-posts/${postId}`,
+        };
+        await this.notificationsService.create(newNotification);
+
+        this.appGateway.emitNotification(post.userId, {
+          type: 'comment',
+          message: `${user.name} comentou no seu post`,
+          link: `/timeline-posts/${postId}`,
+          sender: {
+            id: user.id,
+            name: user.name,
+            avatar: user.profilePhoto,
+          },
+          timestamp: Date.now(),
+        });
+      }
+    }
+
+    return post;
+  }
+
+  async findAllPaginated(
+    page = 1,
+    limit = 10,
+    userId?: number,
+  ): Promise<{
+    data: TimelinePost[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const skip = (page - 1) * limit;
+    const filter = userId ? { userId } : {};
+
+    const [data, total] = await Promise.all([
+      this.timelinePostModel
+        .find(filter)
+        .sort({ postDate: -1 }) // mais recentes primeiro
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.timelinePostModel.countDocuments().exec(),
+    ]);
+
+    return { data, total, page, limit };
   }
 }
