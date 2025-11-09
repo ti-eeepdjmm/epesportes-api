@@ -26,6 +26,9 @@ describe('TimelinePostsController', () => {
             findOne: jest.fn().mockResolvedValue({}),
             update: jest.fn().mockResolvedValue({}),
             remove: jest.fn().mockResolvedValue({}),
+            addReaction: jest.fn().mockResolvedValue({}),
+            addComment: jest.fn().mockResolvedValue({}),
+            removeComment: jest.fn().mockResolvedValue({}),
           },
         },
       ],
@@ -72,4 +75,25 @@ describe('TimelinePostsController', () => {
     await expect(controller.remove('abc123')).resolves.toEqual({});
     expect(service.remove).toHaveBeenCalledWith('abc123');
   });
+  
+  it('should add a reaction to a post', async () => {
+    const body = { reactionType: 'liked', userId: 70 } as any;
+    await expect(controller.addReaction('post123', body)).resolves.toEqual({});
+    expect(service.addReaction).toHaveBeenCalledWith('post123', 'liked', 70);
+  });
+
+  it('should add a comment to a post', async () => {
+    const body = { userId: 44, content: 'Nice!' };
+    await expect(controller.addComment('post123', body)).resolves.toEqual({});
+    expect(service.addComment).toHaveBeenCalledWith('post123', 44, 'Nice!');
+  });
+
+  it('should remove a comment from a post by index', async () => {
+    const body = { userId: 44 };
+    await expect(
+      controller.removeComment('post123', '2', body),
+    ).resolves.toEqual({});
+    expect(service.removeComment).toHaveBeenCalledWith('post123', 2, 44);
+  });
+  
 });

@@ -367,6 +367,55 @@ export class TimelinePostsService {
     return post;
   }
 
+  async removeComment(
+    postId: string,
+    commentIndex: number,
+    userId: number,
+  ): Promise<TimelinePost> {
+    if (!Types.ObjectId.isValid(postId)) {
+      throw new Error('Invalid ObjectId format');
+    }
+
+    const post = await this.timelinePostModel.findById(postId);
+    if (!post) throw new NotFoundException('Post não encontrado');
+
+    // Verifica se o índice é válido
+    if (commentIndex < 0 || commentIndex >= post.comments.length) {
+      throw new NotFoundException('Comentário não encontrado');
+    }
+
+    const comment = post.comments[commentIndex];
+
+    // Verifica se o usuário é o autor do comentário ou o autor do post
+    if (comment.userId !== userId && post.userId !== userId) {
+      throw new Error(
+        'Você não tem permissão para remover este comentário',
+      );
+    }
+
+    // Remove o comentário
+    post.comments.splice(commentIndex, 1);
+    await post.save();
+
+    // Emitir post atualizado completo para a timeline
+    const updatedPost = await this.timelinePostModel
+      .findById(post._id)
+      .lean<TimelinePostType>()
+      .exec();
+
+    if (updatedPost) {
+      this.appGateway.emitTimelineUpdate({
+        postId: updatedPost._id.toString(),
+        updatedPost: {
+          ...updatedPost,
+          _id: updatedPost._id.toString(),
+        },
+      });
+    }
+
+    return post;
+  }
+
   async findAllPaginated(
     page = 1,
     limit = 10,

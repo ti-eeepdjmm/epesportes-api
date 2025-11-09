@@ -72,6 +72,7 @@ export class TimelinePostsController {
   remove(@Param('id') id: string) {
     return this.timelinePostsService.remove(id);
   }
+  // Adicionar uma reação a um post
   @Post(':id/react')
   addReaction(@Param('id') id: string, @Body() body: AddReactionDto) {
     // eslint-disable-next-line prettier/prettier
@@ -81,12 +82,23 @@ export class TimelinePostsController {
       body.userId,
     );
   }
-
+  // Adicionar um comentário a um post
   @Post(':id/comment')
   addComment(
     @Param('id') id: string,
     @Body() body: { userId: number; content: string },
   ) {
     return this.timelinePostsService.addComment(id, body.userId, body.content);
+  }
+
+  // Remover um comentário de um post
+  @Delete(':id/comment/:commentIndex')
+  removeComment(
+    @Param('id') id: string,
+    @Param('commentIndex') commentIndex: string,
+    @Body() body: { userId: number },
+  ) {
+    const index = parseInt(commentIndex, 10);
+    return this.timelinePostsService.removeComment(id, index, body.userId);
   }
 }
