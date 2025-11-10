@@ -125,15 +125,18 @@ describe('TimelinePostsService', () => {
     await service.remove(id);
 
     // Verifica argumento passado
-    const callArg = mockPostModel.findByIdAndDelete.mock.calls[0][0];
+    const calls = mockPostModel.findByIdAndDelete.mock.calls as Array<
+      [Types.ObjectId]
+    >;
+    const callArg = calls[0][0];
     expect(callArg).toBeInstanceOf(Types.ObjectId);
     expect(callArg.toHexString()).toBe(id);
   });
 
   it('should throw on invalid ObjectId when removing a post', async () => {
-    await expect(service.remove('invalid'))
-      .rejects
-      .toThrow('Invalid ObjectId format');
+    await expect(service.remove('invalid')).rejects.toThrow(
+      'Invalid ObjectId format',
+    );
   });
 
   it('should create a post and emit socket + notification', async () => {
