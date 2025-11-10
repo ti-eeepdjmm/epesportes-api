@@ -1,9 +1,20 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { TimelinePostsController } from './timeline_posts.controller';
 import { TimelinePostsService } from './timeline_posts.service';
 import { CreateTimelinePostDto } from './dto/create-timeline_post.dto';
 import { UpdateTimelinePostDto } from './dto/update-timeline_post.dto';
+
+type ReactionType =
+  | 'liked'
+  | 'beast'
+  | 'plays_great'
+  | 'amazing_goal'
+  | 'stylish';
+
+interface AddReactionDto {
+  reactionType: ReactionType;
+  userId: number;
+}
 
 describe('TimelinePostsController', () => {
   let controller: TimelinePostsController;
@@ -45,6 +56,7 @@ describe('TimelinePostsController', () => {
   it('should create a post', async () => {
     const dto: CreateTimelinePostDto = { userId: 1, content: 'Post' };
     await expect(controller.create(dto)).resolves.toEqual({});
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(service.create).toHaveBeenCalledWith(dto);
   });
 
@@ -57,34 +69,40 @@ describe('TimelinePostsController', () => {
       page: 1,
       limit: 10,
     });
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(service.findAllPaginated).toHaveBeenCalledWith(1, 10, undefined);
   });
 
   it('should return one post', async () => {
     await expect(controller.findOne('abc123')).resolves.toEqual({});
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(service.findOne).toHaveBeenCalledWith('abc123');
   });
 
   it('should update a post', async () => {
     const dto: UpdateTimelinePostDto = { content: 'Updated' };
     await expect(controller.update('abc123', dto)).resolves.toEqual({});
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(service.update).toHaveBeenCalledWith('abc123', dto);
   });
 
   it('should remove a post', async () => {
     await expect(controller.remove('abc123')).resolves.toEqual({});
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(service.remove).toHaveBeenCalledWith('abc123');
   });
-  
+
   it('should add a reaction to a post', async () => {
-    const body = { reactionType: 'liked', userId: 70 } as any;
+    const body: AddReactionDto = { reactionType: 'liked', userId: 70 };
     await expect(controller.addReaction('post123', body)).resolves.toEqual({});
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(service.addReaction).toHaveBeenCalledWith('post123', 'liked', 70);
   });
 
   it('should add a comment to a post', async () => {
     const body = { userId: 44, content: 'Nice!' };
     await expect(controller.addComment('post123', body)).resolves.toEqual({});
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(service.addComment).toHaveBeenCalledWith('post123', 44, 'Nice!');
   });
 
@@ -93,7 +111,7 @@ describe('TimelinePostsController', () => {
     await expect(
       controller.removeComment('post123', '2', body),
     ).resolves.toEqual({});
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(service.removeComment).toHaveBeenCalledWith('post123', 2, 44);
   });
-  
 });

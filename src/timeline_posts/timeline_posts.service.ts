@@ -388,9 +388,7 @@ export class TimelinePostsService {
 
     // Verifica se o usuário é o autor do comentário ou o autor do post
     if (comment.userId !== userId && post.userId !== userId) {
-      throw new Error(
-        'Você não tem permissão para remover este comentário',
-      );
+      throw new Error('Você não tem permissão para remover este comentário');
     }
 
     // Remove o comentário
